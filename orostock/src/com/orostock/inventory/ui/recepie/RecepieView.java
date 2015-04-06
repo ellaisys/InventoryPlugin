@@ -20,6 +20,10 @@ import com.floreantpos.model.dao.RecepieItemDAO;
 import com.floreantpos.swing.IUpdatebleView;
 
 public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1197092484112412792L;
 	JTable recepieItemTable;
 	JButton btnAddItem = new JButton("Add Inventory Item");
 	JButton btnDeleteItem = new JButton("Delete Selected Item");
@@ -40,8 +44,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		});
 		this.btnDeleteItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				int selectedRow = RecepieView.this.recepieItemTable
-						.getSelectedRow();
+				int selectedRow = RecepieView.this.recepieItemTable.getSelectedRow();
 				if (selectedRow < 0) {
 					return;
 				}
@@ -72,16 +75,14 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		item.setPercentage(Double.valueOf(this.itemSelector.getPercentage()));
 		item.setInventoryItem(this.itemSelector.getSelectedItem());
 
-		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable
-				.getModel();
+		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable.getModel();
 		model.addItem(item);
 		recepieItemTable.invalidate();
 
 	}
 
 	public boolean updateModel(MenuItem e) {
-		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable
-				.getModel();
+		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable.getModel();
 
 		Recepie recepie = e.getRecepie();
 		if (recepie == null) {
@@ -129,10 +130,8 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		if (recepie == null)
 			return;
 
-		List<RecepieItem> items = new ArrayList<RecepieItem>(
-				recepie.getRecepieItems());
-		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable
-				.getModel();
+		List<RecepieItem> items = new ArrayList<RecepieItem>(recepie.getRecepieItems());
+		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable.getModel();
 		model.setRows(items);
 
 		this.inited = true;

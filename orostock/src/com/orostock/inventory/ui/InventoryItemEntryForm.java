@@ -44,7 +44,12 @@ import com.floreantpos.ui.dialog.POSMessageDialog;
  
  public class InventoryItemEntryForm extends BeanEditor<InventoryItem>
  {
-   JPanel mainPanel = new JPanel();
+   /**
+	 * 
+	 */
+	private static final long serialVersionUID = -6443314703410893172L;
+
+JPanel mainPanel = new JPanel();
  
    JTextField tfName = new FixedLengthTextField(60);
    JTextField tfBarcode = new FixedLengthTextField(30);
