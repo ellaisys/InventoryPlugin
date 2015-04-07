@@ -24,7 +24,9 @@ import com.floreantpos.bo.ui.ModelBrowser;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.InventoryItem;
 import com.floreantpos.model.InventoryTransaction;
+import com.floreantpos.model.InventoryWarehouseItem;
 import com.floreantpos.model.dao.InventoryItemDAO;
+import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
@@ -75,12 +77,9 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			out = new FileWriter(selectedFile);
 			List<InventoryItem> inventoryItems = InventoryItemDAO.getInstance().findAll();
 
-			String[] header = { "NAME", "UNIT_PER_PACKAGE", "TOTAL_PACKAGES",
-					"AVERAGE_PACKAGE_PRICE", "TOTAL_RECEPIE_UNITS",
-					"UNIT_PURCHASE_PRICE", "PACKAGE_BARCODE", "UNIT_BARCODE",
-					"PACKAGE_DESC", "SORT_ORDER", "PACKAGE_REORDER_LEVEL",
-					"PACKAGE_REPLENISH_LEVEL", "DESCRIPTION",
-					"UNIT_SELLING_PRICE" };
+			String[] header = { "NAME", "UNIT_PER_PACKAGE", "TOTAL_PACKAGES", "AVERAGE_PACKAGE_PRICE", "TOTAL_RECEPIE_UNITS", "UNIT_PURCHASE_PRICE",
+					"PACKAGE_BARCODE", "UNIT_BARCODE", "PACKAGE_DESC", "SORT_ORDER", "PACKAGE_REORDER_LEVEL", "PACKAGE_REPLENISH_LEVEL",
+					"DESCRIPTION", "UNIT_SELLING_PRICE" };
 
 			String line = "";
 			for (String string : header) {
@@ -114,8 +113,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 
 			JOptionPane.showMessageDialog(this, "Exported");
 		} catch (Exception e) {
-			POSMessageDialog.showError(BackOfficeWindow.getInstance(),
-					e.getMessage());
+			POSMessageDialog.showError(BackOfficeWindow.getInstance(), e.getMessage());
 			e.printStackTrace();
 		} finally {
 			IOUtils.closeQuietly(out);
@@ -124,8 +122,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 
 	public void loadData() {
 		List<InventoryItem> inventoryItems = InventoryItemDAO.getInstance().findAll();
-		InventoryItemTableModel tableModel = (InventoryItemTableModel) this.browserTable
-				.getModel();
+		InventoryItemTableModel tableModel = (InventoryItemTableModel) this.browserTable.getModel();
 		tableModel.setRows(inventoryItems);
 	}
 
@@ -138,14 +135,12 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 	}
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
-		if (e.getActionCommand().equalsIgnoreCase(
-				Command.NEW_TRANSACTION.name())) {
+		if (e.getActionCommand().equalsIgnoreCase(Command.NEW_TRANSACTION.name())) {
 			InventoryItem bean = (InventoryItem) this.beanEditor.getBean();
 			InventoryTransactionEntryForm form = new InventoryTransactionEntryForm();
 			form.setBean(new InventoryTransaction());
 			form.setInventoryItem(bean);
-			BeanEditorDialog dialog = new BeanEditorDialog(form,
-					BackOfficeWindow.getInstance(), true);
+			BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
 			dialog.pack();
 			dialog.open();
 
@@ -173,30 +168,41 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 	}
 
 	static class InventoryItemTableModel extends ListTableModel<InventoryItem> {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 3011793405270921001L;
 		NumberFormat f = new DecimalFormat("0.##");
 
 		public InventoryItemTableModel() {
-			super(new String[]{ "NAME", "DESCRIPTION","TOTAL_PACKAGES" ,"TOTAL_RECEPIE_UNITS"});
+			super(new String[] { "ITEM NAME", "DESCRIPTION", "CAFE QUANTITY", "GODOWN QUANTITY" });
 		}
 
-//		public InventoryItemTableModel(List<InventoryItem> items) {
-//			super(items);
-//		}
+		// public InventoryItemTableModel(List<InventoryItem> items) {
+		// super(items);
+		// }
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			InventoryItem row = (InventoryItem) getRowData(rowIndex);
-
+			InventoryWarehouseItemDAO dao = InventoryWarehouseItemDAO.getInstance();
+			List<InventoryWarehouseItem> listItems = dao.findByInventoryItem(row);
+			Double cafeQty = 0.0d;
+			Double godownQty = 0.0d;
+			double factor = row.getPackagingUnit().getFactor();
+			if (listItems != null && listItems.size() == 2) {
+				cafeQty = new Double(listItems.get(0).getTotalRecepieUnits() / factor);
+				godownQty = new Double(listItems.get(1).getTotalRecepieUnits() / factor);
+			}
 			switch (columnIndex) {
 			case 0:
 				return row.getName();
 			case 1:
 				return row.getDescription();
 			case 2:
-				return row.getTotalPackages();
+				return this.f.format(cafeQty) + " " + row.getPackagingUnit().getName();
 			case 3:
-				return this.f.format(row.getTotalRecepieUnits());
+				return this.f.format(godownQty) + " " + row.getPackagingUnit().getName();
 			}
-
 			return row.getName();
 		}
 	}
