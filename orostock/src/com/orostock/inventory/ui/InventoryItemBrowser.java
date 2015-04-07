@@ -1,7 +1,6 @@
 package com.orostock.inventory.ui;
 
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.DecimalFormat;
@@ -37,13 +36,13 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		super(new InventoryItemEntryForm());
 
 		JPanel buttonPanel = new JPanel();
-		JButton btnExport = new JButton("Export Items");
-		btnExport.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				InventoryItemBrowser.this.exportInventoryItems();
-			}
-		});
-		buttonPanel.add(btnExport);
+		// JButton btnExport = new JButton("Export Items");
+		// btnExport.addActionListener(new ActionListener() {
+		// public void actionPerformed(ActionEvent e) {
+		// InventoryItemBrowser.this.exportInventoryItems();
+		// }
+		// });
+		// buttonPanel.add(btnExport);
 
 		this.browserPanel.add(buttonPanel, "South");
 
@@ -143,7 +142,6 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
 			dialog.pack();
 			dialog.open();
-
 			refreshTable();
 		} else {
 			InventoryItem bean = (InventoryItem) this.beanEditor.getBean();
@@ -186,12 +184,16 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			InventoryItem row = (InventoryItem) getRowData(rowIndex);
 			InventoryWarehouseItemDAO dao = InventoryWarehouseItemDAO.getInstance();
 			List<InventoryWarehouseItem> listItems = dao.findByInventoryItem(row);
-			Double cafeQty = 0.0d;
-			Double godownQty = 0.0d;
+			Double cafePcgQty = 0.0d;
+			Double godownPcgQty = 0.0d;
+			Double cafeRcpQty = 0.0d;
+			Double godownRcpQty = 0.0d;
 			double factor = row.getPackagingUnit().getFactor();
 			if (listItems != null && listItems.size() == 2) {
-				cafeQty = new Double(listItems.get(0).getTotalRecepieUnits() / factor);
-				godownQty = new Double(listItems.get(1).getTotalRecepieUnits() / factor);
+				cafePcgQty = Math.floor(new Double((listItems.get(0).getTotalRecepieUnits() / factor)));
+				godownPcgQty = Math.floor(new Double((listItems.get(1).getTotalRecepieUnits() / factor)));
+				cafeRcpQty = listItems.get(0).getTotalRecepieUnits() - (cafePcgQty * factor);
+				godownRcpQty = listItems.get(1).getTotalRecepieUnits() - (godownPcgQty * factor);
 			}
 			switch (columnIndex) {
 			case 0:
@@ -199,9 +201,19 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			case 1:
 				return row.getDescription();
 			case 2:
-				return this.f.format(cafeQty) + " " + row.getPackagingUnit().getName();
+				if (cafeRcpQty <= 0.0) {
+					return this.f.format(cafePcgQty) + " " + row.getPackagingUnit().getName();
+				} else {
+					return this.f.format(cafePcgQty) + " " + row.getPackagingUnit().getName() + ", " + this.f.format(cafeRcpQty) + " "
+							+ row.getPackagingUnit().getShortName();
+				}
 			case 3:
-				return this.f.format(godownQty) + " " + row.getPackagingUnit().getName();
+				if (godownRcpQty <= 0.0) {
+					return this.f.format(godownPcgQty) + " " + row.getPackagingUnit().getName();
+				} else {
+					return this.f.format(godownPcgQty) + " " + row.getPackagingUnit().getName() + ", " + this.f.format(godownRcpQty) + " "
+							+ row.getPackagingUnit().getShortName();
+				}
 			}
 			return row.getName();
 		}

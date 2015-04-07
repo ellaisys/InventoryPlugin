@@ -3,6 +3,8 @@ package com.orostock.inventory.ui;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.beans.PropertyChangeEvent;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -20,18 +22,23 @@ import org.hibernate.Transaction;
 import org.jdesktop.swingx.JXComboBox;
 import org.jdesktop.swingx.JXDatePicker;
 
+import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.InOutEnum;
 import com.floreantpos.model.InventoryItem;
+import com.floreantpos.model.InventoryLocation;
 import com.floreantpos.model.InventoryTransaction;
 import com.floreantpos.model.InventoryTransactionType;
 import com.floreantpos.model.InventoryVendor;
 import com.floreantpos.model.InventoryWarehouse;
+import com.floreantpos.model.InventoryWarehouseItem;
 import com.floreantpos.model.PurchaseOrder;
 import com.floreantpos.model.dao.InventoryItemDAO;
+import com.floreantpos.model.dao.InventoryLocationDAO;
 import com.floreantpos.model.dao.InventoryTransactionDAO;
 import com.floreantpos.model.dao.InventoryTransactionTypeDAO;
 import com.floreantpos.model.dao.InventoryVendorDAO;
 import com.floreantpos.model.dao.InventoryWarehouseDAO;
+import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
 import com.floreantpos.model.dao.PurchaseOrderDAO;
 import com.floreantpos.model.util.IllegalModelStateException;
 import com.floreantpos.swing.DoubleTextField;
@@ -39,8 +46,7 @@ import com.floreantpos.swing.IntegerTextField;
 import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
-public class InventoryTransactionEntryForm extends
-		BeanEditor<InventoryTransaction> implements ActionListener {
+public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransaction> implements ActionListener {
 	private JTextField tfItem;
 	private DoubleTextField tfUnitPrice;
 	private JXComboBox cbTransactionType;
@@ -60,13 +66,10 @@ public class InventoryTransactionEntryForm extends
 	public InventoryTransactionEntryForm() {
 		createUI();
 
-		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance()
-				.findAll();
-		List<InventoryWarehouse> warehouse = InventoryWarehouseDAO
-				.getInstance().findAll();
+		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance().findAll();
+		List<InventoryWarehouse> warehouse = InventoryWarehouseDAO.getInstance().findAll();
 
-		List<InventoryTransactionType> transactionTypes = InventoryTransactionTypeDAO
-				.getInstance().findAll();
+		List<InventoryTransactionType> transactionTypes = InventoryTransactionTypeDAO.getInstance().findAll();
 
 		if (transactionTypes.size() == 0) {
 			InventoryTransactionType transactionType = new InventoryTransactionType();
@@ -84,18 +87,13 @@ public class InventoryTransactionEntryForm extends
 			transactionType.setInOrOutEnum(InOutEnum.MOVEMENT);
 			InventoryTransactionTypeDAO.getInstance().save(transactionType);
 
-			transactionTypes = InventoryTransactionTypeDAO.getInstance()
-					.findAll();
+			transactionTypes = InventoryTransactionTypeDAO.getInstance().findAll();
 		}
 
-		this.cbTransactionType.setModel(new DefaultComboBoxModel(
-				transactionTypes.toArray(new InventoryTransactionType[0])));
-		this.cbVendor.setModel(new DefaultComboBoxModel(vendors
-				.toArray(new InventoryVendor[0])));
-		this.inWareHouse.setModel(new DefaultComboBoxModel(warehouse
-				.toArray(new InventoryWarehouse[0])));
-		this.outWareHouse.setModel(new DefaultComboBoxModel(warehouse
-				.toArray(new InventoryWarehouse[0])));
+		this.cbTransactionType.setModel(new DefaultComboBoxModel(transactionTypes.toArray(new InventoryTransactionType[0])));
+		this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new InventoryVendor[0])));
+		this.inWareHouse.setModel(new DefaultComboBoxModel(warehouse.toArray(new InventoryWarehouse[0])));
+		this.outWareHouse.setModel(new DefaultComboBoxModel(warehouse.toArray(new InventoryWarehouse[0])));
 
 	}
 
@@ -116,11 +114,11 @@ public class InventoryTransactionEntryForm extends
 		this.tfItem.setEnabled(false);
 		add(this.tfItem, "grow, wrap");
 
-		add(this.priceLabel = new JLabel("Unit Price"));
+		add(this.priceLabel = new JLabel("Purchase Price"));
 		this.tfUnitPrice = new DoubleTextField(20);
 		add(this.tfUnitPrice, "grow, wrap");
 
-		add(new JLabel("Unit"));
+		add(new JLabel("No. of Items"));
 		this.tfUnit = new IntegerTextField(20);
 		add(this.tfUnit, "grow, wrap");
 
@@ -132,13 +130,13 @@ public class InventoryTransactionEntryForm extends
 		this.cbVendor = new JXComboBox();
 		add(this.cbVendor, "wrap, w 200px");
 
-		add(this.inWareHouseLabel = new JLabel("In-Warehouse"));
-		this.inWareHouse = new JXComboBox();
-		add(this.inWareHouse, "wrap, w 200px");
-
 		add(this.outWareHouseLabel = new JLabel("Out-Warehouse"));
 		this.outWareHouse = new JXComboBox();
 		add(this.outWareHouse, "wrap, w 200px");
+
+		add(this.inWareHouseLabel = new JLabel("In-Warehouse"));
+		this.inWareHouse = new JXComboBox();
+		add(this.inWareHouse, "wrap, w 200px");
 
 		add(new JLabel("Note"));
 		this.taNote = new JTextArea();
@@ -152,51 +150,145 @@ public class InventoryTransactionEntryForm extends
 		this.tfItem.setText(item.getName());
 	}
 
+	String formatDouble(double d) {
+		NumberFormat f = new DecimalFormat("0.##");
+		return f.format(d);
+	}
+
 	public boolean save() {
 		Session session = null;
-		Transaction tx = null;
+		// Transaction tx = null;
 		try {
 			if (!updateModel()) {
 				return false;
 			}
-
+			int reorderLevel = inventoryItem.getPackageReorderLevel();
+			int replenishLevel = inventoryItem.getPackageReplenishLevel();
 			InventoryTransaction inventoryTransaction = (InventoryTransaction) getBean();
+			InventoryLocationDAO locDAO = InventoryLocationDAO.getInstance();
+			List<InventoryLocation> listLocIn = locDAO.findByInventoryItem((InventoryWarehouse) this.inWareHouse.getSelectedItem());
+			InventoryLocation locationIN = null;
+			if (listLocIn != null && !listLocIn.isEmpty()) {
+				locationIN = listLocIn.get(0);
+			}
 
-			InOutEnum inOutEnum = InOutEnum.fromInt(inventoryTransaction
-					.getTransactionType().getInOrOut().intValue());
+			List<InventoryLocation> listLocOut = locDAO.findByInventoryItem((InventoryWarehouse) this.outWareHouse.getSelectedItem());
+			InventoryLocation locationOUT = null;
+			if (listLocOut != null && !listLocOut.isEmpty()) {
+				locationOUT = listLocOut.get(0);
+			}
+			InOutEnum inOutEnum = InOutEnum.fromInt(inventoryTransaction.getTransactionType().getInOrOut().intValue());
 			switch (inOutEnum) {
 			case IN:
-				this.inventoryItem
-						.setTotalPackages(Integer
-								.valueOf(this.inventoryItem.getTotalPackages()
-										.intValue()
-										+ inventoryTransaction.getQuantity()
-												.intValue()));
-				this.inventoryItem.setLastUpdateDate(new Date());
+				InventoryWarehouseItemDAO dao1 = InventoryWarehouseItemDAO.getInstance();
+				InventoryWarehouseItem inventoryWarehouseItem1 = null;
+				if (dao1 != null) {
+					inventoryWarehouseItem1 = dao1.findByInventoryItemAndInventoryLocation(inventoryItem, locationIN);
+				}
+				double recepieUnits1 = inventoryWarehouseItem1.getTotalRecepieUnits();
+				inventoryWarehouseItem1.setTotalRecepieUnits(recepieUnits1
+						+ (inventoryTransaction.getQuantity().intValue() * inventoryItem.getPackagingUnit().getFactor()));
+				inventoryWarehouseItem1.setLastUpdateDate(new Date());
+				inventoryWarehouseItem1.setUnitPurchasePrice(0.0d);
+				dao1.saveOrUpdate(inventoryWarehouseItem1);
+
+				// this.inventoryItem.setTotalPackages(Integer.valueOf(this.inventoryItem.getTotalPackages().intValue()
+				// + inventoryTransaction.getQuantity().intValue()));
+				// this.inventoryItem.setLastUpdateDate(new Date());
 				break;
 			case OUT:
-				this.inventoryItem
-						.setTotalPackages(Integer
-								.valueOf(this.inventoryItem.getTotalPackages()
-										.intValue()
-										- inventoryTransaction.getQuantity()
-												.intValue()));
-				this.inventoryItem.setLastUpdateDate(new Date());
+				InventoryWarehouseItemDAO dao2 = InventoryWarehouseItemDAO.getInstance();
+				InventoryWarehouseItem inventoryWarehouseItem2 = null;
+				if (dao2 != null) {
+					inventoryWarehouseItem2 = dao2.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
+				}
+				double recepieUnits2 = inventoryWarehouseItem2.getTotalRecepieUnits();
+				double unitsToBeRemoved = (inventoryTransaction.getQuantity().intValue() * inventoryItem.getPackagingUnit().getFactor());
+				if (recepieUnits2 >= unitsToBeRemoved) {
+					inventoryWarehouseItem2.setTotalRecepieUnits(recepieUnits2 - unitsToBeRemoved);
+					inventoryWarehouseItem2.setLastUpdateDate(new Date());
+					inventoryWarehouseItem2.setUnitPurchasePrice(0.0d);
+					dao2.saveOrUpdate(inventoryWarehouseItem2);
+					int noOfItemsNow = (int) ((recepieUnits2 - unitsToBeRemoved) / inventoryItem.getPackagingUnit().getFactor());
+					if (locationOUT.getName().contains("Cafe")) {
+						if (noOfItemsNow >= replenishLevel) {
+							POSMessageDialog
+									.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName()
+											+ "left in Cafe. Please bring more from Godown!");
+						}
+					} else if (locationOUT.getName().contains("Godown")) {
+						if (noOfItemsNow >= reorderLevel) {
+							POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
+									+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
+									+ " left in godown. Please order now!");
+						}
+					}
+				} else {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be removed should be less than "
+							+ formatDouble(recepieUnits2 / inventoryItem.getPackagingUnit().getFactor()));
+				}
+
+				// this.inventoryItem.setTotalPackages(Integer.valueOf(this.inventoryItem.getTotalPackages().intValue()
+				// - inventoryTransaction.getQuantity().intValue()));
+				// this.inventoryItem.setLastUpdateDate(new Date());
+				break;
+			case MOVEMENT:
+				if (locationIN.getId() != locationOUT.getId()) {
+					InventoryWarehouseItemDAO dao3 = InventoryWarehouseItemDAO.getInstance();
+					InventoryWarehouseItem inventoryWarehouseItemIN = null;
+					InventoryWarehouseItem inventoryWarehouseItemOUT = null;
+					if (dao3 != null) {
+						inventoryWarehouseItemIN = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationIN);
+						inventoryWarehouseItemOUT = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
+					}
+					double recepieUnitsIN = inventoryWarehouseItemIN.getTotalRecepieUnits();
+					double recepieUnitsOUT = inventoryWarehouseItemOUT.getTotalRecepieUnits();
+					double unitsToBeMoved = (inventoryTransaction.getQuantity().intValue() * inventoryItem.getPackagingUnit().getFactor());
+					if (recepieUnitsOUT >= unitsToBeMoved) {
+						inventoryWarehouseItemOUT.setTotalRecepieUnits(recepieUnitsOUT - unitsToBeMoved);
+						inventoryWarehouseItemOUT.setLastUpdateDate(new Date());
+						inventoryWarehouseItemOUT.setUnitPurchasePrice(0.0d);
+
+						inventoryWarehouseItemIN.setTotalRecepieUnits(recepieUnitsIN - unitsToBeMoved);
+						inventoryWarehouseItemIN.setLastUpdateDate(new Date());
+						inventoryWarehouseItemIN.setUnitPurchasePrice(0.0d);
+
+						dao3.saveOrUpdate(inventoryWarehouseItemOUT);
+						dao3.saveOrUpdate(inventoryWarehouseItemIN);
+						int noOfItemsNow = (int) ((recepieUnitsOUT - unitsToBeMoved) / inventoryItem.getPackagingUnit().getFactor());
+						if (locationOUT.getName().contains("Cafe")) {
+							if (noOfItemsNow >= replenishLevel) {
+								POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
+										+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
+										+ " left in CAFE. Please bring more from Godown now!");
+							}
+						} else if (locationOUT.getName().contains("Godown")) {
+							if (noOfItemsNow >= reorderLevel) {
+								POSMessageDialog.showError(BackOfficeWindow.getInstance(),
+										"WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName() + "left in godown. Please order now!");
+							}
+						}
+					} else {
+						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be moved should be less than "
+								+ formatDouble(recepieUnitsOUT / inventoryItem.getPackagingUnit().getFactor()));
+					}
+				} else {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "In-location and Out-location can't be same!");
+				}
 				break;
 			}
 
 			session = InventoryTransactionDAO.getInstance().createNewSession();
-//			tx = session.beginTransaction();
+			// tx = session.beginTransaction();
 			PurchaseOrder purchaseOrder = inventoryTransaction.getReferenceNo();
 			PurchaseOrderDAO.getInstance().saveOrUpdate(purchaseOrder, session);
-			InventoryTransactionDAO.getInstance().saveOrUpdate(
-					inventoryTransaction, session);
-			InventoryItemDAO.getInstance().saveOrUpdate(this.inventoryItem);
-//			tx.commit();
+			InventoryTransactionDAO.getInstance().saveOrUpdate(inventoryTransaction, session);
+			// InventoryItemDAO.getInstance().saveOrUpdate(this.inventoryItem);
+			// tx.commit();
 		} catch (Exception e) {
-//			if (tx != null) {
-////				tx.rollback();
-//			}
+			// if (tx != null) {
+			// // tx.rollback();
+			// }
 
 			if (session != null) {
 				session.close();
@@ -217,34 +309,25 @@ public class InventoryTransactionEntryForm extends
 
 		PurchaseOrder purchaseOrder = new PurchaseOrder();
 		purchaseOrder.setOrderId(UUID.randomUUID().toString());
-		InventoryTransactionType transType = (InventoryTransactionType) this.cbTransactionType
-				.getSelectedItem();
-		transaction
-				.setTransactionType(transType);
+		InventoryTransactionType transType = (InventoryTransactionType) this.cbTransactionType.getSelectedItem();
+		transaction.setTransactionType(transType);
 		transaction.setReferenceNo(purchaseOrder);
 		transaction.setInventoryItem(this.inventoryItem);
-		transaction
-		.setVendor((InventoryVendor) this.cbVendor.getSelectedItem());
-		switch(transType.getInOutEnum()){
+		transaction.setVendor((InventoryVendor) this.cbVendor.getSelectedItem());
+		switch (transType.getInOutEnum()) {
 		case IN:
-			transaction
-			.setVendor((InventoryVendor) this.cbVendor.getSelectedItem());
-			transaction.setToWarehouse((InventoryWarehouse) this.inWareHouse
-					.getSelectedItem());
+			transaction.setVendor((InventoryVendor) this.cbVendor.getSelectedItem());
+			transaction.setToWarehouse((InventoryWarehouse) this.inWareHouse.getSelectedItem());
 			transaction.setUnitPrice(Double.valueOf(this.tfUnitPrice.getDouble()));
 			break;
 		case OUT:
-			transaction
-			.setVendor((InventoryVendor) this.cbVendor.getSelectedItem());
-			transaction.setFromWarehouse((InventoryWarehouse) this.outWareHouse
-					.getSelectedItem());
+			transaction.setVendor((InventoryVendor) this.cbVendor.getSelectedItem());
+			transaction.setFromWarehouse((InventoryWarehouse) this.outWareHouse.getSelectedItem());
 			transaction.setUnitPrice(Double.valueOf(this.tfUnitPrice.getDouble()));
 			break;
 		case MOVEMENT:
-			transaction.setToWarehouse((InventoryWarehouse) this.inWareHouse
-					.getSelectedItem());
-			transaction.setFromWarehouse((InventoryWarehouse) this.outWareHouse
-					.getSelectedItem());
+			transaction.setToWarehouse((InventoryWarehouse) this.inWareHouse.getSelectedItem());
+			transaction.setFromWarehouse((InventoryWarehouse) this.outWareHouse.getSelectedItem());
 			break;
 		}
 		transaction.setQuantity(Integer.valueOf(this.tfUnit.getInteger()));
@@ -258,9 +341,9 @@ public class InventoryTransactionEntryForm extends
 
 	public void actionPerformed(ActionEvent arg0) {
 		System.out.println(arg0.paramString());
-		InventoryTransactionType type = (InventoryTransactionType) (((DefaultComboBoxModel<?>)((JXComboBox) arg0
-				.getSource()).getModel()).getSelectedItem());
-		switch(type.getInOutEnum()){
+		InventoryTransactionType type = (InventoryTransactionType) (((DefaultComboBoxModel<?>) ((JXComboBox) arg0.getSource()).getModel())
+				.getSelectedItem());
+		switch (type.getInOutEnum()) {
 		case IN:
 			this.outWareHouse.setVisible(false);
 			this.inWareHouse.setVisible(true);
@@ -276,7 +359,6 @@ public class InventoryTransactionEntryForm extends
 			this.outWareHouse.setVisible(true);
 			this.inWareHouse.setVisible(false);
 			this.cbVendor.setVisible(true);
-			
 			this.outWareHouseLabel.setVisible(true);
 			this.inWareHouseLabel.setVisible(false);
 			this.vendorLabel.setVisible(true);
@@ -287,7 +369,6 @@ public class InventoryTransactionEntryForm extends
 			this.outWareHouse.setVisible(true);
 			this.inWareHouse.setVisible(true);
 			this.cbVendor.setVisible(false);
-			
 			this.outWareHouseLabel.setVisible(true);
 			this.inWareHouseLabel.setVisible(true);
 			this.vendorLabel.setVisible(false);

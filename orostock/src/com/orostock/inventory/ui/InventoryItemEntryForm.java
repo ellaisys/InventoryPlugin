@@ -28,17 +28,14 @@ import com.floreantpos.model.InventoryGroup;
 import com.floreantpos.model.InventoryItem;
 import com.floreantpos.model.InventoryLocation;
 import com.floreantpos.model.InventoryVendor;
-import com.floreantpos.model.InventoryWarehouse;
 import com.floreantpos.model.InventoryWarehouseItem;
 import com.floreantpos.model.PackagingUnit;
 import com.floreantpos.model.dao.InventoryGroupDAO;
 import com.floreantpos.model.dao.InventoryItemDAO;
 import com.floreantpos.model.dao.InventoryLocationDAO;
 import com.floreantpos.model.dao.InventoryVendorDAO;
-import com.floreantpos.model.dao.InventoryWarehouseDAO;
 import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
 import com.floreantpos.model.dao.PackagingUnitDAO;
-import com.floreantpos.swing.DoubleTextField;
 import com.floreantpos.swing.FixedLengthTextField;
 import com.floreantpos.swing.IntegerTextField;
 import com.floreantpos.swing.ListComboBoxModel;
@@ -301,7 +298,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		if (inventoryItem == null) {
 			return;
 		}
-		NumberFormat f = new DecimalFormat("0.##");
+//		NumberFormat f = new DecimalFormat("0.##");
 
 		this.tfName.setText(inventoryItem.getName());
 		this.tfBarcode.setText(inventoryItem.getPackageBarcode());
@@ -336,7 +333,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		}
 
 		if (StringUtils.isEmpty(this.tfName.getText())) {
-			POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Name is empty");
+			POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Item Name is empty");
 			return false;
 		}
 
