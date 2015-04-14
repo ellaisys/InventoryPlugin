@@ -76,7 +76,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			out = new FileWriter(selectedFile);
 			List<InventoryItem> inventoryItems = InventoryItemDAO.getInstance().findAll();
 
-			String[] header = { "NAME", "UNIT_PER_PACKAGE", "TOTAL_PACKAGES", "AVERAGE_PACKAGE_PRICE", "TOTAL_RECEPIE_UNITS", "UNIT_PURCHASE_PRICE",
+			String[] header = { "NAME", "UNIT_PER_PACKAGE", "TOTAL_PACKAGES", "AVERAGE_RUNIT_PRICE", "TOTAL_RECEPIE_UNITS", "UNIT_PURCHASE_PRICE",
 					"PACKAGE_BARCODE", "UNIT_BARCODE", "PACKAGE_DESC", "SORT_ORDER", "PACKAGE_REORDER_LEVEL", "PACKAGE_REPLENISH_LEVEL",
 					"DESCRIPTION", "UNIT_SELLING_PRICE" };
 
@@ -94,7 +94,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 				line = line + inventoryItem.getName() + ",";
 				line = line + inventoryItem.getUnitPerPackage() + ",";
 				line = line + inventoryItem.getTotalPackages() + ",";
-				line = line + inventoryItem.getAveragePackagePrice() + ",";
+				line = line + inventoryItem.getAverageRUnitPrice() + ",";
 				line = line + inventoryItem.getTotalRecepieUnits() + ",";
 				line = line + inventoryItem.getUnitPurchasePrice() + ",";
 				line = line + inventoryItem.getPackageBarcode() + ",";
@@ -173,7 +173,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		NumberFormat f = new DecimalFormat("0.##");
 
 		public InventoryItemTableModel() {
-			super(new String[] { "ITEM NAME", "DESCRIPTION", "CAFE QUANTITY", "GODOWN QUANTITY" });
+			super(new String[] { "ITEM NAME", "CAFE QUANTITY", "GODOWN QUANTITY" });
 		}
 
 		// public InventoryItemTableModel(List<InventoryItem> items) {
@@ -199,15 +199,13 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			case 0:
 				return row.getName();
 			case 1:
-				return row.getDescription();
-			case 2:
 				if (cafeRcpQty <= 0.0) {
 					return this.f.format(cafePcgQty) + " " + row.getPackagingUnit().getName();
 				} else {
 					return this.f.format(cafePcgQty) + " " + row.getPackagingUnit().getName() + ", " + this.f.format(cafeRcpQty) + " "
 							+ row.getPackagingUnit().getShortName();
 				}
-			case 3:
+			case 2:
 				if (godownRcpQty <= 0.0) {
 					return this.f.format(godownPcgQty) + " " + row.getPackagingUnit().getName();
 				} else {

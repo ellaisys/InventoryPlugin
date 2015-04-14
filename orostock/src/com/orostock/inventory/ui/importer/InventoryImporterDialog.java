@@ -41,7 +41,7 @@ import com.floreantpos.ui.TitlePanel;
      public boolean isCellEditable(int row, int column) {
        return true;
      } } ;
-   private InventoryImportarTableModel tableModel;
+   private InventoryImporterTableModel tableModel;
  
    public InventoryImporterDialog(List<InventoryItem> inventoryItems) {
      super(BackOfficeWindow.getInstance(), true);
@@ -52,7 +52,7 @@ import com.floreantpos.ui.TitlePanel;
      titlePanel.setTitle("Inventory item import preview");
      add(titlePanel, "North");
  
-     this.inventoryTable.setModel(this.tableModel = new InventoryImportarTableModel(inventoryItems));
+     this.inventoryTable.setModel(this.tableModel = new InventoryImporterTableModel(inventoryItems));
      this.inventoryTable.setDefaultEditor(String.class, new DefaultCellEditor(new FocusedTextField()));
  
      for (int i = this.inventoryTable.getColumnCount() - 1; i > 7; i--) {

@@ -2,7 +2,6 @@ package com.orostock.inventory.ui;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.beans.PropertyChangeEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
@@ -10,6 +9,7 @@ import java.util.List;
 import java.util.UUID;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -42,13 +42,13 @@ import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
 import com.floreantpos.model.dao.PurchaseOrderDAO;
 import com.floreantpos.model.util.IllegalModelStateException;
 import com.floreantpos.swing.DoubleTextField;
-import com.floreantpos.swing.IntegerTextField;
 import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
 public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransaction> implements ActionListener {
 	private JTextField tfItem;
 	private DoubleTextField tfUnitPrice;
+	private DoubleTextField tfVAT;
 	private JXComboBox cbTransactionType;
 	private JXComboBox cbVendor;
 	private JXComboBox inWareHouse;
@@ -57,9 +57,12 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	private JLabel inWareHouseLabel;
 	private JLabel outWareHouseLabel;
 	private JLabel priceLabel;
+	private JLabel vatLabel;
+	private JLabel itemCountLabel;
 	private JXDatePicker datePicker;
 	private JTextArea taNote;
-	private IntegerTextField tfUnit;
+	private JCheckBox creditCheck;
+	private DoubleTextField tfUnit;
 	private JTextField tfPO;
 	private InventoryItem inventoryItem;
 
@@ -83,6 +86,16 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			InventoryTransactionTypeDAO.getInstance().save(transactionType);
 
 			transactionType = new InventoryTransactionType();
+			transactionType.setName("ADJUSTMENT");
+			transactionType.setInOrOutEnum(InOutEnum.ADJUSTMENT);
+			InventoryTransactionTypeDAO.getInstance().save(transactionType);
+
+			transactionType = new InventoryTransactionType();
+			transactionType.setName("WASTAGE");
+			transactionType.setInOrOutEnum(InOutEnum.WASTAGE);
+			InventoryTransactionTypeDAO.getInstance().save(transactionType);
+
+			transactionType = new InventoryTransactionType();
 			transactionType.setName("STOCK MOVEMENT");
 			transactionType.setInOrOutEnum(InOutEnum.MOVEMENT);
 			InventoryTransactionTypeDAO.getInstance().save(transactionType);
@@ -91,10 +104,26 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		}
 
 		this.cbTransactionType.setModel(new DefaultComboBoxModel(transactionTypes.toArray(new InventoryTransactionType[0])));
+		this.cbTransactionType.setSelectedIndex(1);
+
 		this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new InventoryVendor[0])));
 		this.inWareHouse.setModel(new DefaultComboBoxModel(warehouse.toArray(new InventoryWarehouse[0])));
 		this.outWareHouse.setModel(new DefaultComboBoxModel(warehouse.toArray(new InventoryWarehouse[0])));
 
+	}
+
+	private void updateAverageItemPrice(InventoryItem item, int newRecepieUnits, double totalPaid) {
+		InventoryWarehouseItemDAO dao = InventoryWarehouseItemDAO.getInstance();
+		List<InventoryWarehouseItem> wareItemList = dao.findByInventoryItem(item);
+		double totalRecepieUnits = 0;
+		if (wareItemList != null && !wareItemList.isEmpty()) {
+			for (InventoryWarehouseItem i : wareItemList) {
+				totalRecepieUnits = totalRecepieUnits + i.getTotalRecepieUnits();
+			}
+		}
+		double averagePrice = ((totalRecepieUnits * item.getAverageRUnitPrice()) + totalPaid) / (totalRecepieUnits + newRecepieUnits);
+		inventoryItem.setAverageRUnitPrice(averagePrice);
+		InventoryItemDAO.getInstance().saveOrUpdate(inventoryItem);
 	}
 
 	private void createUI() {
@@ -114,12 +143,20 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.tfItem.setEnabled(false);
 		add(this.tfItem, "grow, wrap");
 
-		add(this.priceLabel = new JLabel("Purchase Price"));
+		add(this.priceLabel = new JLabel("Total Price"));
 		this.tfUnitPrice = new DoubleTextField(20);
 		add(this.tfUnitPrice, "grow, wrap");
 
-		add(new JLabel("No. of Items"));
-		this.tfUnit = new IntegerTextField(20);
+		add(this.vatLabel = new JLabel("VAT Paid"));
+		this.tfVAT = new DoubleTextField(20);
+		add(this.tfVAT, "grow, wrap");
+
+		// add(new JLabel("Credit"));
+		add(this.creditCheck = new JCheckBox("Credit", false));
+		add(this.creditCheck, "grow, wrap");
+
+		add(this.itemCountLabel = new JLabel("No of items"));
+		this.tfUnit = new DoubleTextField(20);
 		add(this.tfUnit, "grow, wrap");
 
 		add(new JLabel("Date"));
@@ -148,6 +185,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	public void setInventoryItem(InventoryItem item) {
 		this.inventoryItem = item;
 		this.tfItem.setText(item.getName());
+		this.itemCountLabel.setText("Units (" + item.getPackagingUnit().getName() + ")");
 	}
 
 	String formatDouble(double d) {
@@ -156,8 +194,10 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	}
 
 	public boolean save() {
-		Session session = null;
-		// Transaction tx = null;
+		Session session = InventoryTransactionDAO.getInstance().createNewSession();
+		Transaction tx = session.beginTransaction();
+
+		boolean actionPerformed = false;
 		try {
 			if (!updateModel()) {
 				return false;
@@ -180,6 +220,9 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			InOutEnum inOutEnum = InOutEnum.fromInt(inventoryTransaction.getTransactionType().getInOrOut().intValue());
 			switch (inOutEnum) {
 			case IN:
+				updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()),
+						inventoryTransaction.getUnitPrice() * inventoryTransaction.getQuantity());
+
 				InventoryWarehouseItemDAO dao1 = InventoryWarehouseItemDAO.getInstance();
 				InventoryWarehouseItem inventoryWarehouseItem1 = null;
 				if (dao1 != null) {
@@ -187,37 +230,41 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 				}
 				double recepieUnits1 = inventoryWarehouseItem1.getTotalRecepieUnits();
 				inventoryWarehouseItem1.setTotalRecepieUnits(recepieUnits1
-						+ (inventoryTransaction.getQuantity().intValue() * inventoryItem.getPackagingUnit().getFactor()));
+						+ (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()));
 				inventoryWarehouseItem1.setLastUpdateDate(new Date());
 				inventoryWarehouseItem1.setUnitPurchasePrice(0.0d);
 				dao1.saveOrUpdate(inventoryWarehouseItem1);
-
+				actionPerformed = true;
 				// this.inventoryItem.setTotalPackages(Integer.valueOf(this.inventoryItem.getTotalPackages().intValue()
 				// + inventoryTransaction.getQuantity().intValue()));
 				// this.inventoryItem.setLastUpdateDate(new Date());
 				break;
 			case OUT:
+				updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor() * -1),
+						inventoryTransaction.getUnitPrice() * inventoryTransaction.getQuantity());
+
 				InventoryWarehouseItemDAO dao2 = InventoryWarehouseItemDAO.getInstance();
 				InventoryWarehouseItem inventoryWarehouseItem2 = null;
 				if (dao2 != null) {
 					inventoryWarehouseItem2 = dao2.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
 				}
 				double recepieUnits2 = inventoryWarehouseItem2.getTotalRecepieUnits();
-				double unitsToBeRemoved = (inventoryTransaction.getQuantity().intValue() * inventoryItem.getPackagingUnit().getFactor());
+				double unitsToBeRemoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor());
 				if (recepieUnits2 >= unitsToBeRemoved) {
 					inventoryWarehouseItem2.setTotalRecepieUnits(recepieUnits2 - unitsToBeRemoved);
 					inventoryWarehouseItem2.setLastUpdateDate(new Date());
 					inventoryWarehouseItem2.setUnitPurchasePrice(0.0d);
 					dao2.saveOrUpdate(inventoryWarehouseItem2);
+					actionPerformed = true;
 					int noOfItemsNow = (int) ((recepieUnits2 - unitsToBeRemoved) / inventoryItem.getPackagingUnit().getFactor());
-					if (locationOUT.getName().contains("Cafe")) {
-						if (noOfItemsNow >= replenishLevel) {
+					if (locationOUT.getName().toLowerCase().contains("cafe")) {
+						if (noOfItemsNow <= replenishLevel) {
 							POSMessageDialog
 									.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName()
 											+ "left in Cafe. Please bring more from Godown!");
 						}
-					} else if (locationOUT.getName().contains("Godown")) {
-						if (noOfItemsNow >= reorderLevel) {
+					} else if (locationOUT.getName().toLowerCase().contains("godown")) {
+						if (noOfItemsNow <= reorderLevel) {
 							POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
 									+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
 									+ " left in godown. Please order now!");
@@ -243,27 +290,29 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					}
 					double recepieUnitsIN = inventoryWarehouseItemIN.getTotalRecepieUnits();
 					double recepieUnitsOUT = inventoryWarehouseItemOUT.getTotalRecepieUnits();
-					double unitsToBeMoved = (inventoryTransaction.getQuantity().intValue() * inventoryItem.getPackagingUnit().getFactor());
+					double unitsToBeMoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor());
 					if (recepieUnitsOUT >= unitsToBeMoved) {
 						inventoryWarehouseItemOUT.setTotalRecepieUnits(recepieUnitsOUT - unitsToBeMoved);
 						inventoryWarehouseItemOUT.setLastUpdateDate(new Date());
 						inventoryWarehouseItemOUT.setUnitPurchasePrice(0.0d);
 
-						inventoryWarehouseItemIN.setTotalRecepieUnits(recepieUnitsIN - unitsToBeMoved);
+						inventoryWarehouseItemIN.setTotalRecepieUnits(recepieUnitsIN + unitsToBeMoved);
 						inventoryWarehouseItemIN.setLastUpdateDate(new Date());
 						inventoryWarehouseItemIN.setUnitPurchasePrice(0.0d);
 
 						dao3.saveOrUpdate(inventoryWarehouseItemOUT);
 						dao3.saveOrUpdate(inventoryWarehouseItemIN);
+						actionPerformed = true;
+
 						int noOfItemsNow = (int) ((recepieUnitsOUT - unitsToBeMoved) / inventoryItem.getPackagingUnit().getFactor());
-						if (locationOUT.getName().contains("Cafe")) {
-							if (noOfItemsNow >= replenishLevel) {
+						if (locationOUT.getName().toLowerCase().contains("cafe")) {
+							if (noOfItemsNow <= replenishLevel) {
 								POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
 										+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
 										+ " left in CAFE. Please bring more from Godown now!");
 							}
-						} else if (locationOUT.getName().contains("Godown")) {
-							if (noOfItemsNow >= reorderLevel) {
+						} else if (locationOUT.getName().toLowerCase().contains("godown")) {
+							if (noOfItemsNow <= reorderLevel) {
 								POSMessageDialog.showError(BackOfficeWindow.getInstance(),
 										"WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName() + "left in godown. Please order now!");
 							}
@@ -276,19 +325,55 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "In-location and Out-location can't be same!");
 				}
 				break;
+			case ADJUSTMENT:
+			case WASTAGE:
+				InventoryWarehouseItemDAO dao3 = InventoryWarehouseItemDAO.getInstance();
+				InventoryWarehouseItem inventoryWarehouseItem3 = null;
+				if (dao3 != null) {
+					inventoryWarehouseItem3 = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
+				}
+				double recepieUnits3 = inventoryWarehouseItem3.getTotalRecepieUnits();
+				double unitsToBeAdjusted = inventoryTransaction.getQuantity();
+				if (recepieUnits3 >= unitsToBeAdjusted) {
+					inventoryWarehouseItem3.setTotalRecepieUnits(recepieUnits3 - unitsToBeAdjusted);
+					inventoryWarehouseItem3.setLastUpdateDate(new Date());
+					inventoryWarehouseItem3.setUnitPurchasePrice(0.0d);
+					dao3.saveOrUpdate(inventoryWarehouseItem3);
+					actionPerformed = true;
+					int noOfItemsNow = (int) ((recepieUnits3 - unitsToBeAdjusted) / inventoryItem.getPackagingUnit().getFactor());
+					if (locationOUT.getName().toLowerCase().contains("cafe")) {
+						if (noOfItemsNow <= replenishLevel) {
+							POSMessageDialog
+									.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName()
+											+ "left in Cafe. Please bring more from Godown!");
+						}
+					} else if (locationOUT.getName().toLowerCase().contains("godown")) {
+						if (noOfItemsNow <= reorderLevel) {
+							POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
+									+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
+									+ " left in godown. Please order now!");
+						}
+					}
+				} else {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be removed should be less than "
+							+ formatDouble(recepieUnits3 / inventoryItem.getPackagingUnit().getFactor()));
+				}
+				break;
 			}
 
-			session = InventoryTransactionDAO.getInstance().createNewSession();
-			// tx = session.beginTransaction();
 			PurchaseOrder purchaseOrder = inventoryTransaction.getReferenceNo();
 			PurchaseOrderDAO.getInstance().saveOrUpdate(purchaseOrder, session);
 			InventoryTransactionDAO.getInstance().saveOrUpdate(inventoryTransaction, session);
 			// InventoryItemDAO.getInstance().saveOrUpdate(this.inventoryItem);
-			// tx.commit();
+			if (actionPerformed) {
+				tx.commit();
+			} else {
+				tx.rollback();
+			}
 		} catch (Exception e) {
-			// if (tx != null) {
-			// // tx.rollback();
-			// }
+			if (tx != null) {
+				tx.rollback();
+			}
 
 			if (session != null) {
 				session.close();
@@ -319,18 +404,27 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			transaction.setVendor((InventoryVendor) this.cbVendor.getSelectedItem());
 			transaction.setToWarehouse((InventoryWarehouse) this.inWareHouse.getSelectedItem());
 			transaction.setUnitPrice(Double.valueOf(this.tfUnitPrice.getDouble()));
+			transaction.setVatPaid(Double.valueOf(this.tfVAT.getDouble()));
+			transaction.setCreditCheck(creditCheck.isSelected());
 			break;
 		case OUT:
 			transaction.setVendor((InventoryVendor) this.cbVendor.getSelectedItem());
 			transaction.setFromWarehouse((InventoryWarehouse) this.outWareHouse.getSelectedItem());
 			transaction.setUnitPrice(Double.valueOf(this.tfUnitPrice.getDouble()));
+			transaction.setVatPaid(Double.valueOf(this.tfVAT.getDouble()));
+			transaction.setCreditCheck(creditCheck.isSelected());
 			break;
 		case MOVEMENT:
 			transaction.setToWarehouse((InventoryWarehouse) this.inWareHouse.getSelectedItem());
 			transaction.setFromWarehouse((InventoryWarehouse) this.outWareHouse.getSelectedItem());
 			break;
+		case ADJUSTMENT:
+		case WASTAGE:
+			transaction.setFromWarehouse((InventoryWarehouse) this.outWareHouse.getSelectedItem());
+			transaction.setUnitPrice(0.0d);
+			break;
 		}
-		transaction.setQuantity(Integer.valueOf(this.tfUnit.getInteger()));
+		transaction.setQuantity(Double.valueOf(this.tfUnit.getDouble()));
 		transaction.setTransactionDate(this.datePicker.getDate());
 		return true;
 	}
@@ -353,7 +447,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.vendorLabel.setVisible(true);
 			this.priceLabel.setVisible(true);
 			this.tfUnitPrice.setVisible(true);
-
+			this.tfVAT.setVisible(true);
+			this.creditCheck.setVisible(true);
 			break;
 		case OUT:
 			this.outWareHouse.setVisible(true);
@@ -364,6 +459,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.vendorLabel.setVisible(true);
 			this.priceLabel.setVisible(true);
 			this.tfUnitPrice.setVisible(true);
+			this.tfVAT.setVisible(true);
+			this.creditCheck.setVisible(true);
 			break;
 		case MOVEMENT:
 			this.outWareHouse.setVisible(true);
@@ -374,6 +471,19 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.vendorLabel.setVisible(false);
 			this.priceLabel.setVisible(false);
 			this.tfUnitPrice.setVisible(false);
+			break;
+		case ADJUSTMENT:
+		case WASTAGE:
+			this.outWareHouse.setVisible(true);
+			this.inWareHouse.setVisible(false);
+			this.cbVendor.setVisible(false);
+			this.outWareHouseLabel.setVisible(true);
+			this.inWareHouseLabel.setVisible(false);
+			this.vendorLabel.setVisible(false);
+			this.priceLabel.setVisible(false);
+			this.tfUnitPrice.setVisible(false);
+			this.creditCheck.setVisible(false);
+			this.itemCountLabel.setText("Units (" + inventoryItem.getPackagingUnit().getShortName() + ")");
 			break;
 		}
 

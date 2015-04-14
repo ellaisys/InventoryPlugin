@@ -16,6 +16,7 @@ import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.MenuItem;
 import com.floreantpos.model.Recepie;
 import com.floreantpos.model.RecepieItem;
+import com.floreantpos.model.dao.RecepieDAO;
 import com.floreantpos.model.dao.RecepieItemDAO;
 import com.floreantpos.swing.IUpdatebleView;
 
@@ -95,7 +96,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		List<RecepieItem> toDel = new ArrayList<RecepieItem>();
 		List<RecepieItem> finalList = new ArrayList<RecepieItem>();
 		if (recepie.getRecepieItems() != null) {
-			finalList = recepie.getRecepieItems();
+			finalList.addAll(recepie.getRecepieItems());
 			for (RecepieItem item : finalList) {
 				if (!rows.contains(item)) {
 					toDel.add(item);
