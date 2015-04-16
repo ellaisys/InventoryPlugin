@@ -57,13 +57,11 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	private JLabel inWareHouseLabel;
 	private JLabel outWareHouseLabel;
 	private JLabel priceLabel;
-	private JLabel vatLabel;
 	private JLabel itemCountLabel;
 	private JXDatePicker datePicker;
 	private JTextArea taNote;
 	private JCheckBox creditCheck;
 	private DoubleTextField tfUnit;
-	private JTextField tfPO;
 	private InventoryItem inventoryItem;
 
 	public InventoryTransactionEntryForm() {
@@ -147,7 +145,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.tfUnitPrice = new DoubleTextField(20);
 		add(this.tfUnitPrice, "grow, wrap");
 
-		add(this.vatLabel = new JLabel("VAT Paid"));
+		add(new JLabel("VAT Paid"));
 		this.tfVAT = new DoubleTextField(20);
 		add(this.tfVAT, "grow, wrap");
 

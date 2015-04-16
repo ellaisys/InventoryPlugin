@@ -1,10 +1,12 @@
 package com.orostock.inventory.ui;
 
 import java.awt.BorderLayout;
+import java.awt.TextField;
 
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -16,95 +18,122 @@ import com.floreantpos.model.dao.InventoryVendorDAO;
 import com.floreantpos.swing.POSTextField;
 import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.POSMessageDialog;
-import com.floreantpos.util.POSUtil;
 
-public class InventoryVendorEntryForm extends BeanEditor<InventoryVendor>
-{
-  private JCheckBox chkVisible;
-  private POSTextField tfName;
+public class InventoryVendorEntryForm extends BeanEditor<InventoryVendor> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4705036150381956350L;
+	private POSTextField tfName;
+	private TextField tfPhone;
+	private TextField tfEmail;
+	private JTextArea taAddress;
+	JPanel mainPanel = new JPanel();
 
-  public InventoryVendorEntryForm(InventoryVendor ig)
-  {
-    setLayout(new BorderLayout());
+	public InventoryVendorEntryForm() {
+		setLayout(new BorderLayout());
+		createUI();
+	}
 
-    createUI();
+	private void createUI() {
+		setLayout(new BorderLayout());
+		add(this.mainPanel);
 
-    setBean(ig);
-  }
+		this.mainPanel.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
 
-  private void createUI()
-  {
-    JPanel panel = new JPanel();
-    add(panel, "Center");
-    panel.setLayout(new MigLayout("", "[][grow]", "[][]"));
+		mainPanel.add(new JLabel("Name"));
+		this.tfName = new POSTextField();
+		mainPanel.add(this.tfName, "grow, wrap");
 
-    JLabel lblName = new JLabel("Name");
-    panel.add(lblName, "cell 0 0,alignx trailing");
+		mainPanel.add(new JLabel("Phone"));
+		this.tfPhone = new TextField(20);
+		mainPanel.add(this.tfPhone, "grow, wrap");
 
-    this.tfName = new POSTextField();
-    panel.add(this.tfName, "cell 1 0,growx");
+		mainPanel.add(new JLabel("Email"));
+		this.tfEmail = new TextField(40);
+		mainPanel.add(this.tfEmail, "grow, wrap");
 
-    this.chkVisible = new JCheckBox("Visible", true);
-    panel.add(this.chkVisible, "cell 1 1");
-  }
+		mainPanel.add(new JLabel("Address"));
+		this.taAddress = new JTextArea();
+		mainPanel.add(new JScrollPane(this.taAddress), "grow, h 100px, wrap");
+		setFieldsEnable(false);
+	}
 
-  public void updateView()
-  {
-    InventoryVendor model = (InventoryVendor)getBean();
+	public void createNew() {
+		setBean(new InventoryVendor());
+	}
 
-    if (model == null) {
-      return;
-    }
+	public void clearFields() {
+		this.tfName.setText("");
+		this.tfPhone.setText("");
+		this.tfEmail.setText("");
+		this.taAddress.setText("");
+	}
 
-    this.tfName.setText(model.getName());
+	public void setFieldsEnable(boolean enable) {
+		this.tfName.setEnabled(enable);
+		this.tfPhone.setEnabled(enable);
+		this.tfEmail.setEnabled(enable);
+		this.taAddress.setEnabled(enable);
+	}
 
-    if (model.getId() != null)
-      this.chkVisible.setSelected(POSUtil.getBoolean(model.isVisible()));
-  }
+	public void updateView() {
+		InventoryVendor model = (InventoryVendor) getBean();
+		if (model == null) {
+			return;
+		}
+		this.tfName.setText(model.getName());
+		this.tfPhone.setText(model.getPhone());
+		this.tfEmail.setText(model.getEmail());
+		this.taAddress.setText(model.getAddress());
+	}
 
-  public boolean updateModel() {
-    InventoryVendor model = (InventoryVendor)getBean();
+	public boolean updateModel() {
+		InventoryVendor model = (InventoryVendor) getBean();
+		if (model == null) {
+			model = new InventoryVendor();
+			setBean(model);
+		}
+		String nameString = this.tfName.getText();
+		if (StringUtils.isEmpty(nameString)) {
+			throw new PosException("Name cannot be empty");
+		}
+		model.setName(nameString);
+		model.setPhone(this.tfPhone.getText());
+		model.setEmail(this.tfEmail.getText());
+		model.setAddress(this.taAddress.getText());
+		return true;
+	}
 
-    if (model == null) {
-      model = new InventoryVendor();
-    }
+	public boolean delete() {
+		InventoryVendor inventoryVendor = (InventoryVendor) getBean();
+		if (inventoryVendor == null) {
+			return false;
+		}
+		InventoryVendorDAO.getInstance().delete(inventoryVendor);
+		return true;
+	}
 
-    String nameString = this.tfName.getText();
-    if (StringUtils.isEmpty(nameString)) {
-      throw new PosException("Name cannot be empty");
-    }
+	public String getDisplayText() {
+		InventoryVendor inventoryVendor = (InventoryVendor) getBean();
+		if ((inventoryVendor == null) || (inventoryVendor.getId() == null)) {
+			return "Add new Vendor";
+		}
+		return "Edit Vendor";
+	}
 
-    model.setName(nameString);
-    model.setVisible(Boolean.valueOf(this.chkVisible.isSelected()));
+	public boolean save() {
+		try {
+			if (!updateModel()) {
+				return false;
+			}
+			InventoryVendorDAO dao = InventoryVendorDAO.getInstance();
+			dao.saveOrUpdate((InventoryVendor) getBean());
+			return true;
+		} catch (Exception e) {
+			POSMessageDialog.showError(e.getMessage(), e);
+		}
+		return false;
+	}
 
-    return true;
-  }
-
-  public String getDisplayText()
-  {
-    return "Add inventory Entry";
-  }
-
-  public boolean save()
-  {
-    try {
-      if (!updateModel()) {
-        return false;
-      }
-
-      InventoryVendor model = (InventoryVendor)getBean();
-      InventoryVendorDAO.getInstance().saveOrUpdate(model);
-
-      return true;
-    } catch (Exception e) {
-      POSMessageDialog.showError(e.getMessage());
-    }
-
-    return false;
-  }
 }
-
-/* Location:           C:\Users\SOMYA\Downloads\floreantpos_14452\floreantpos-1.4-build556\plugins\orostock-0.1.jar
- * Qualified Name:     com.orostock.inventory.ui.InventoryVendorEntryForm
- * JD-Core Version:    0.6.0
- */

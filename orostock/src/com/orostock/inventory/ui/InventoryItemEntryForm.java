@@ -244,7 +244,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	}
 
 	protected void createNewVendor() {
-		InventoryVendorEntryForm form = new InventoryVendorEntryForm(new InventoryVendor());
+		InventoryVendorEntryForm form = new InventoryVendorEntryForm();
+		form.setBean(new InventoryVendor());
 		BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
 		dialog.pack();
 		dialog.open();
@@ -298,7 +299,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		if (inventoryItem == null) {
 			return;
 		}
-//		NumberFormat f = new DecimalFormat("0.##");
+		// NumberFormat f = new DecimalFormat("0.##");
 
 		this.tfName.setText(inventoryItem.getName());
 		this.tfBarcode.setText(inventoryItem.getPackageBarcode());

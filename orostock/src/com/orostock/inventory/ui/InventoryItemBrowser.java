@@ -30,6 +30,10 @@ import com.floreantpos.ui.dialog.BeanEditorDialog;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
 public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7358720735670997427L;
 	private JButton btnNewTransaction = new JButton("NEW TRANSACTION");
 
 	public InventoryItemBrowser() {

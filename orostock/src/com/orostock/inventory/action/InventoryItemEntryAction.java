@@ -11,7 +11,12 @@ import com.orostock.inventory.ui.InventoryItemEntryForm;
  
  public class InventoryItemEntryAction extends AbstractAction
  {
-   public InventoryItemEntryAction()
+   /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1025959183208948925L;
+
+public InventoryItemEntryAction()
    {
      super("New Inventory Item");
    }

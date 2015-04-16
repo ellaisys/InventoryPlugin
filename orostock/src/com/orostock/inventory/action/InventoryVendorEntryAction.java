@@ -11,16 +11,23 @@ import com.orostock.inventory.ui.InventoryVendorEntryForm;
  
  public class InventoryVendorEntryAction extends AbstractAction
  {
-   public InventoryVendorEntryAction()
+   /**
+	 * 
+	 */
+	private static final long serialVersionUID = 3242037186499011678L;
+
+public InventoryVendorEntryAction()
    {
      super("New Inventory Vendor");
    }
  
    public void actionPerformed(ActionEvent e)
    {
-     InventoryVendorEntryForm form = new InventoryVendorEntryForm(new InventoryVendor());
+     InventoryVendorEntryForm form = new InventoryVendorEntryForm();
+     form.setBean(new InventoryVendor());
      BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
      dialog.pack();
+     dialog.setLocationRelativeTo(BackOfficeWindow.getInstance());
      dialog.open();
    }
  }
