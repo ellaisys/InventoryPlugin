@@ -15,6 +15,7 @@ import org.apache.commons.lang.StringUtils;
 import com.floreantpos.PosException;
 import com.floreantpos.model.InventoryVendor;
 import com.floreantpos.model.dao.InventoryVendorDAO;
+import com.floreantpos.swing.DoubleTextField;
 import com.floreantpos.swing.POSTextField;
 import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.POSMessageDialog;
@@ -25,7 +26,7 @@ public class InventoryVendorEntryForm extends BeanEditor<InventoryVendor> {
 	 */
 	private static final long serialVersionUID = 4705036150381956350L;
 	private POSTextField tfName;
-	private TextField tfPhone;
+	private DoubleTextField tfPhone;
 	private TextField tfEmail;
 	private JTextArea taAddress;
 	JPanel mainPanel = new JPanel();
@@ -46,7 +47,7 @@ public class InventoryVendorEntryForm extends BeanEditor<InventoryVendor> {
 		mainPanel.add(this.tfName, "grow, wrap");
 
 		mainPanel.add(new JLabel("Phone"));
-		this.tfPhone = new TextField(20);
+		this.tfPhone = new DoubleTextField(20);
 		mainPanel.add(this.tfPhone, "grow, wrap");
 
 		mainPanel.add(new JLabel("Email"));

@@ -89,6 +89,7 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 
 		add(new JLabel("VAT Paid"));
 		this.tfVAT = new DoubleTextField(20);
+		this.tfVAT.setText("0.0");
 		add(this.tfVAT, "grow, wrap");
 
 		add(this.creditCheck = new JCheckBox("Credit", false));

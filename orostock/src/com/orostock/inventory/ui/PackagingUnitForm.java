@@ -15,11 +15,15 @@
  
  public class PackagingUnitForm extends BeanEditor<PackagingUnit>
  {
-   private FixedLengthTextField tfName = new FixedLengthTextField(30);
+   /**
+	 * 
+	 */
+	private static final long serialVersionUID = -4982566356163849129L;
+private FixedLengthTextField tfName = new FixedLengthTextField(30);
    private FixedLengthTextField tfShortName = new FixedLengthTextField(10);
    private DoubleTextField tfFactor = new DoubleTextField(10);
  
-   private JComboBox<PackagingDimension> cbDimension = new JComboBox(PackagingDimension.values());
+   private JComboBox<PackagingDimension> cbDimension = new JComboBox<PackagingDimension>(PackagingDimension.values());
  
    public PackagingUnitForm() {
      this(null);

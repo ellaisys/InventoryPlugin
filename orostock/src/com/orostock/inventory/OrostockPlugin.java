@@ -7,15 +7,15 @@ import net.xeoh.plugins.base.annotations.PluginImplementation;
 
 import com.floreantpos.extension.InventoryPlugin;
 import com.floreantpos.model.MenuItem;
-import com.orostock.inventory.action.InventoryImporterAction;
 import com.orostock.inventory.action.InventoryItemBrowserAction;
 import com.orostock.inventory.action.InventoryVendorBrowserAction;
+import com.orostock.inventory.action.PackagingUnitBrowserAction;
 import com.orostock.inventory.ui.recepie.RecepieView;
 
 @PluginImplementation
 public class OrostockPlugin implements InventoryPlugin {
 	public AbstractAction[] getActions() {
-		return new AbstractAction[] { new InventoryItemBrowserAction(), new InventoryVendorBrowserAction() };
+		return new AbstractAction[] { new InventoryItemBrowserAction(), new InventoryVendorBrowserAction(), new PackagingUnitBrowserAction() };
 	}
 
 	// {

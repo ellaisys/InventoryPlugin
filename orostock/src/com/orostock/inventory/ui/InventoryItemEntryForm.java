@@ -29,13 +29,11 @@ import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.InventoryGroup;
 import com.floreantpos.model.InventoryItem;
 import com.floreantpos.model.InventoryLocation;
-import com.floreantpos.model.InventoryVendor;
 import com.floreantpos.model.InventoryWarehouseItem;
 import com.floreantpos.model.PackagingUnit;
 import com.floreantpos.model.dao.InventoryGroupDAO;
 import com.floreantpos.model.dao.InventoryItemDAO;
 import com.floreantpos.model.dao.InventoryLocationDAO;
-import com.floreantpos.model.dao.InventoryVendorDAO;
 import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
 import com.floreantpos.model.dao.PackagingUnitDAO;
 import com.floreantpos.swing.FixedLengthTextField;
@@ -71,9 +69,10 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	private final JXComboBox cbPackagingUnit = new JXComboBox(this.unitModel);
 
 	private final JXComboBox cbGroup = new JXComboBox();
+	private final JButton btnNewGroup = new JButton("New Group");
+
 	// private final JXComboBox cbLocation = new JXComboBox();
 	// private final JXComboBox cbVendor = new JXComboBox();
-	private final JButton btnNewGroup = new JButton("New Group");
 
 	// private final JButton btnNewLocation = new JButton("New Location");
 	// private final JButton btnNewVendor = new JButton("New Vendor");
@@ -169,21 +168,22 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.mainPanel.add(new JLabel("Packaging unit"), "cell 0 3,alignx trailing");
 		this.mainPanel.add(this.cbPackagingUnit, "cell 1 3,growx");
 
-		JButton btnNewUnit = new JButton("NEW");
-		btnNewUnit.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				PackagingUnitForm form = new PackagingUnitForm();
-				BeanEditorDialog dialog = new BeanEditorDialog(form, (Frame) SwingUtilities.getWindowAncestor(InventoryItemEntryForm.this), true);
-				dialog.pack();
-				dialog.open();
-
-				if (dialog.isCanceled())
-					return;
-
-				InventoryItemEntryForm.this.unitModel.addElement(form.getBean());
-			}
-		});
-		this.mainPanel.add(btnNewUnit, "wrap");
+		// JButton btnNewUnit = new JButton("NEW");
+		// btnNewUnit.addActionListener(new ActionListener() {
+		// public void actionPerformed(ActionEvent e) {
+		// PackagingUnitForm form = new PackagingUnitForm();
+		// BeanEditorDialog dialog = new BeanEditorDialog(form, (Frame)
+		// SwingUtilities.getWindowAncestor(InventoryItemEntryForm.this), true);
+		// dialog.pack();
+		// dialog.open();
+		//
+		// if (dialog.isCanceled())
+		// return;
+		//
+		// InventoryItemEntryForm.this.unitModel.addElement(form.getBean());
+		// }
+		// });
+		// this.mainPanel.add(btnNewUnit, "wrap");
 		this.mainPanel.add(new JLabel("Reorder level"), "cell 0 6,alignx trailing");
 		this.mainPanel.add(this.tfPackSizeReorderLevel, "cell 1 6,growx");
 
@@ -308,20 +308,19 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// NumberFormat f = new DecimalFormat("0.##");
 
 		this.tfName.setText(inventoryItem.getName());
-		// this.tfBarcode.setText(inventoryItem.getPackageBarcode());
 		this.cbPackagingUnit.setSelectedItem(inventoryItem.getPackagingUnit());
-		// this.tfItemPerPackSize.setText(f.format(inventoryItem.getUnitPerPackage()));
-		// this.tfSortOrder.setText(String.valueOf(inventoryItem.getSortOrder()));
 		this.tfPackSizeReorderLevel.setText(String.valueOf(inventoryItem.getPackageReorderLevel()));
 		this.tfPackSizeReplenishLevel.setText(String.valueOf(inventoryItem.getPackageReplenishLevel()));
 		this.tfDescription.setText(inventoryItem.getDescription());
+		this.cbGroup.setSelectedItem(inventoryItem.getItemGroup());
 
+		// this.tfBarcode.setText(inventoryItem.getPackageBarcode());
+		// this.tfItemPerPackSize.setText(f.format(inventoryItem.getUnitPerPackage()));
+		// this.tfSortOrder.setText(String.valueOf(inventoryItem.getSortOrder()));
 		// this.tfTotalPackages.setText(f.format(inventoryItem.getTotalPackages()));
 		// this.tfBalanceTotalRecepieUnits.setText(f.format(inventoryItem.getTotalRecepieUnits()));
 		// this.tfPurchase_price.setText(f.format(inventoryItem.getUnitPurchasePrice()));
 		// this.tfSelling_price.setText(f.format(inventoryItem.getUnitSellingPrice()));
-
-		this.cbGroup.setSelectedItem(inventoryItem.getItemGroup());
 		// this.cbLocation.setSelectedItem(inventoryItem.getItemLocation());
 		// this.cbVendor.setSelectedItem(inventoryItem.getItemVendor());
 	}
@@ -344,14 +343,12 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 			return false;
 		}
 
-		inventoryItem.setName(this.tfName.getText());
 		// inventoryItem.setPackageBarcode(this.tfBarcode.getText());
+		inventoryItem.setName(this.tfName.getText());
 		inventoryItem.setPackagingUnit((PackagingUnit) this.cbPackagingUnit.getSelectedItem());
-
 		inventoryItem.setPackageReorderLevel(Integer.valueOf(this.tfPackSizeReorderLevel.getInteger()));
 		inventoryItem.setPackageReplenishLevel(Integer.valueOf(this.tfPackSizeReplenishLevel.getInteger()));
 		inventoryItem.setDescription(this.tfDescription.getText());
-
 		inventoryItem.setCreateTime(new Date());
 
 		// set default values
@@ -439,10 +436,3 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		return "Edit inventory item";
 	}
 }
-
-/*
- * Location:
- * C:\Users\SOMYA\Downloads\floreantpos_14452\floreantpos-1.4-build556\
- * plugins\orostock-0.1.jar Qualified Name:
- * com.orostock.inventory.ui.InventoryItemEntryForm JD-Core Version: 0.6.0
- */
