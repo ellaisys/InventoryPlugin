@@ -47,7 +47,6 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 
 	public ExpenseTransactionEntryForm() {
 		createUI();
-		setFieldsEnable(false);
 		List<ExpenseTransactionType> transactionTypes = ExpenseTransactionTypeDAO.getInstance().findAll();
 		if (transactionTypes.size() == 0) {
 			ExpenseTransactionType transactionType = new ExpenseTransactionType();

@@ -1,5 +1,7 @@
 package com.orostock.inventory.ui;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
@@ -8,14 +10,19 @@ import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.filechooser.FileFilter;
+import javax.swing.table.TableColumn;
+import javax.swing.text.TableView.TableRow;
 
 import org.apache.commons.io.IOUtils;
+import org.jdesktop.swingx.JXTable;
 
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.bo.ui.Command;
@@ -124,6 +131,9 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		List<InventoryItem> inventoryItems = InventoryItemDAO.getInstance().findAll();
 		InventoryItemTableModel tableModel = (InventoryItemTableModel) this.browserTable.getModel();
 		tableModel.setRows(inventoryItems);
+		// JXTable inventoryTable = this.browserTable;
+		// inventoryTable.getCellRect(0,0,tru
+		// inventoryTable.setDefaultRenderer(columnClass, renderer);
 	}
 
 	public void refreshTable() {
@@ -168,7 +178,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 	protected void searchInventoryItem() {
 	}
 
-	static class InventoryItemTableModel extends ListTableModel<InventoryItem> {
+	class InventoryItemTableModel extends ListTableModel<InventoryItem> {
 		/**
 		 * 
 		 */
@@ -211,6 +221,10 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 				// this.f.format(cafeRcpQty) + " "
 				// + row.getPackagingUnit().getShortName();
 				// }
+//				if (row.getPackageReorderLevel() > cafePcgQty) {
+//					TableColumn tc = InventoryItemBrowser.this.browserTable.getColumnModel().getColumn(columnIndex);
+//					tc.setCellRenderer(new ColorColumnRenderer(Color.RED, Color.BLACK, rowIndex, columnIndex));
+//				}
 				return this.f.format(cafeRcpQty) + " " + row.getPackagingUnit().getShortName();
 			case 2:
 				// if (godownRcpQty <= 0.0) {
