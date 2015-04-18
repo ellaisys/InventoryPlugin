@@ -116,10 +116,10 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		try {
 			if (updateModel()) {
 				ExpenseTransaction expenseTransaction = (ExpenseTransaction) getBean();
-				if (expenseTransaction.getAmount().isNaN()) {
+				if (expenseTransaction.getAmount() == null || expenseTransaction.getAmount().isNaN()) {
 					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Amount!!");
 					actionPerformed = false;
-				} else if (expenseTransaction.getVatPaid().isNaN()) {
+				} else if (expenseTransaction.getVatPaid() == null || expenseTransaction.getVatPaid().isNaN()) {
 					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
 					actionPerformed = false;
 				} else {

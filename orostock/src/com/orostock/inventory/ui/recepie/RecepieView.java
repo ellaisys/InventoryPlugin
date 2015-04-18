@@ -16,7 +16,6 @@ import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.MenuItem;
 import com.floreantpos.model.Recepie;
 import com.floreantpos.model.RecepieItem;
-import com.floreantpos.model.dao.RecepieDAO;
 import com.floreantpos.model.dao.RecepieItemDAO;
 import com.floreantpos.swing.IUpdatebleView;
 
@@ -139,6 +138,11 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 	}
 
 	class RecepieItemTableModel extends ListTableModel<RecepieItem> {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2216293918891106404L;
+
 		RecepieItemTableModel() {
 			super(new String[] { "NAME", "QUANTITY", "UNIT" });
 		}

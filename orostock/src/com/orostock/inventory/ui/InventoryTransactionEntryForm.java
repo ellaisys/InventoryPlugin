@@ -204,15 +204,15 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			int reorderLevel = inventoryItem.getPackageReorderLevel();
 			int replenishLevel = inventoryItem.getPackageReplenishLevel();
 			InventoryTransaction inventoryTransaction = (InventoryTransaction) getBean();
-			if (inventoryTransaction.getQuantity().isNaN()) {
+			if (inventoryTransaction.getQuantity() == null || inventoryTransaction.getQuantity().isNaN()) {
 				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Quantity!!");
 				actionPerformed = false;
 				return false;
-			} else if (inventoryTransaction.getVatPaid().isNaN()) {
+			} else if (inventoryTransaction.getVatPaid() == null || inventoryTransaction.getVatPaid().isNaN()) {
 				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
 				actionPerformed = false;
 				return false;
-			} else if (inventoryTransaction.getUnitPrice().isNaN()) {
+			} else if (inventoryTransaction.getUnitPrice() == null || inventoryTransaction.getUnitPrice().isNaN()) {
 				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Price!!");
 				actionPerformed = false;
 				return false;
