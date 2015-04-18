@@ -4,7 +4,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
@@ -20,14 +19,13 @@ import org.hibernate.Transaction;
 import org.jdesktop.swingx.JXComboBox;
 import org.jdesktop.swingx.JXDatePicker;
 
+import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.ExpenseTransaction;
 import com.floreantpos.model.ExpenseTransactionType;
 import com.floreantpos.model.ExpenseTypeEnum;
 import com.floreantpos.model.InventoryVendor;
-import com.floreantpos.model.PurchaseOrder;
 import com.floreantpos.model.dao.ExpenseTransactionDAO;
 import com.floreantpos.model.dao.ExpenseTransactionTypeDAO;
-import com.floreantpos.model.dao.PurchaseOrderDAO;
 import com.floreantpos.model.util.IllegalModelStateException;
 import com.floreantpos.swing.DoubleTextField;
 import com.floreantpos.ui.BeanEditor;
@@ -49,6 +47,7 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 
 	public ExpenseTransactionEntryForm() {
 		createUI();
+		setFieldsEnable(false);
 		List<ExpenseTransactionType> transactionTypes = ExpenseTransactionTypeDAO.getInstance().findAll();
 		if (transactionTypes.size() == 0) {
 			ExpenseTransactionType transactionType = new ExpenseTransactionType();
@@ -110,43 +109,30 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		this.tfVendor.setText(vendor.getName());
 	}
 
-	// public boolean save() {
-	// try {
-	// if (!updateModel()) {
-	// return false;
-	// }
-	// ExpenseTransactionDAO dao = ExpenseTransactionDAO.getInstance();
-	// dao.saveOrUpdate((ExpenseTransaction) getBean());
-	// PurchaseOrder purchaseOrder = expenseTransaction.getReferenceNo();
-	// PurchaseOrderDAO.getInstance().saveOrUpdate(purchaseOrder, session);
-	// return true;
-	// } catch (Exception e) {
-	// POSMessageDialog.showError(e.getMessage(), e);
-	// }
-	// return false;
-	// }
-
 	public boolean save() {
 		Session session = ExpenseTransactionDAO.getInstance().createNewSession();
 		Transaction tx = session.beginTransaction();
-
 		boolean actionPerformed = false;
 		try {
-			if (!updateModel()) {
-				return false;
+			if (updateModel()) {
+				ExpenseTransaction expenseTransaction = (ExpenseTransaction) getBean();
+				if (expenseTransaction.getAmount().isNaN()) {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Amount!!");
+					actionPerformed = false;
+				} else if (expenseTransaction.getVatPaid().isNaN()) {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
+					actionPerformed = false;
+				} else {
+					ExpenseTransactionDAO dao = ExpenseTransactionDAO.getInstance();
+					dao.saveOrUpdate(expenseTransaction);
+					actionPerformed = true;
+				}
 			}
-			ExpenseTransaction expenseTransaction = (ExpenseTransaction) getBean();
-
-			PurchaseOrder purchaseOrder = expenseTransaction.getReferenceNo();
-			PurchaseOrderDAO.getInstance().saveOrUpdate(purchaseOrder, session);
-
-			ExpenseTransactionDAO dao = ExpenseTransactionDAO.getInstance();
-			dao.saveOrUpdate(expenseTransaction);
-			actionPerformed = true;
 			if (actionPerformed) {
 				tx.commit();
 			} else {
 				tx.rollback();
+				return false;
 			}
 		} catch (Exception e) {
 			if (tx != null) {
@@ -166,12 +152,9 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 
 	protected boolean updateModel() throws IllegalModelStateException {
 		ExpenseTransaction transaction = (ExpenseTransaction) getBean();
-		PurchaseOrder purchaseOrder = new PurchaseOrder();
-		purchaseOrder.setOrderId(UUID.randomUUID().toString());
 		ExpenseTransactionType transType = (ExpenseTransactionType) this.cbTransactionType.getSelectedItem();
 		transaction.setVendor(vendor);
 		transaction.setTransactionType(transType);
-		transaction.setReferenceNo(purchaseOrder);
 		transaction.setAmount(Double.valueOf(this.tfAmount.getDouble()));
 		transaction.setVatPaid(Double.valueOf(this.tfVAT.getDouble()));
 		transaction.setCreditCheck(creditCheck.isSelected());
@@ -193,5 +176,15 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		this.datePicker.setVisible(true);
 		this.taNote.setVisible(true);
 		this.creditCheck.setVisible(true);
+	}
+
+	public void setFieldsEnable(boolean enable) {
+		this.tfVendor.setEnabled(enable);
+		this.tfAmount.setEnabled(enable);
+		this.tfVAT.setEnabled(enable);
+		this.cbTransactionType.setEnabled(enable);
+		this.datePicker.setEnabled(enable);
+		this.taNote.setEnabled(enable);
+		this.creditCheck.setEnabled(enable);
 	}
 }

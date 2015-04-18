@@ -40,6 +40,9 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		super(new InventoryItemEntryForm());
 
 		JPanel buttonPanel = new JPanel();
+		this.browserPanel.add(buttonPanel, "South");
+		this.btnNewTransaction.setActionCommand(Command.NEW_TRANSACTION.name());
+		this.btnNewTransaction.setEnabled(false);
 		// JButton btnExport = new JButton("Export Items");
 		// btnExport.addActionListener(new ActionListener() {
 		// public void actionPerformed(ActionEvent e) {
@@ -47,12 +50,6 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		// }
 		// });
 		// buttonPanel.add(btnExport);
-
-		this.browserPanel.add(buttonPanel, "South");
-
-		this.btnNewTransaction.setActionCommand(Command.NEW_TRANSACTION.name());
-		this.btnNewTransaction.setEnabled(false);
-
 		init(new InventoryItemTableModel());
 	}
 
@@ -147,6 +144,8 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			dialog.pack();
 			dialog.open();
 			refreshTable();
+		} else if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
+			this.btnNewTransaction.setEnabled(false);
 		} else {
 			InventoryItem bean = (InventoryItem) this.beanEditor.getBean();
 			if ((bean != null) && (bean.getId() != null)) {
@@ -203,19 +202,27 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			case 0:
 				return row.getName();
 			case 1:
-				if (cafeRcpQty <= 0.0) {
-					return this.f.format(cafePcgQty) + " " + row.getPackagingUnit().getName();
-				} else {
-					return this.f.format(cafePcgQty) + " " + row.getPackagingUnit().getName() + ", " + this.f.format(cafeRcpQty) + " "
-							+ row.getPackagingUnit().getShortName();
-				}
+				// if (cafeRcpQty <= 0.0) {
+				// return this.f.format(cafePcgQty) + " " +
+				// row.getPackagingUnit().getName();
+				// } else {
+				// return this.f.format(cafePcgQty) + " " +
+				// row.getPackagingUnit().getName() + ", " +
+				// this.f.format(cafeRcpQty) + " "
+				// + row.getPackagingUnit().getShortName();
+				// }
+				return this.f.format(cafeRcpQty) + " " + row.getPackagingUnit().getShortName();
 			case 2:
-				if (godownRcpQty <= 0.0) {
-					return this.f.format(godownPcgQty) + " " + row.getPackagingUnit().getName();
-				} else {
-					return this.f.format(godownPcgQty) + " " + row.getPackagingUnit().getName() + ", " + this.f.format(godownRcpQty) + " "
-							+ row.getPackagingUnit().getShortName();
-				}
+				// if (godownRcpQty <= 0.0) {
+				// return this.f.format(godownPcgQty) + " " +
+				// row.getPackagingUnit().getName();
+				// } else {
+				// return this.f.format(godownPcgQty) + " " +
+				// row.getPackagingUnit().getName() + ", " +
+				// this.f.format(godownRcpQty) + " "
+				// + row.getPackagingUnit().getShortName();
+				// }
+				return this.f.format(godownRcpQty) + " " + row.getPackagingUnit().getShortName();
 			}
 			return row.getName();
 		}

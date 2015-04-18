@@ -21,6 +21,8 @@ import javax.swing.SwingUtilities;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.jdesktop.swingx.JXComboBox;
 
 import com.floreantpos.bo.ui.BackOfficeWindow;
@@ -52,7 +54,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	JPanel mainPanel = new JPanel();
 
 	JTextField tfName = new FixedLengthTextField(60);
-	JTextField tfBarcode = new FixedLengthTextField(30);
+	// JTextField tfBarcode = new FixedLengthTextField(30);
 
 	IntegerTextField tfPackSizeReorderLevel = new IntegerTextField(30);
 	IntegerTextField tfPackSizeReplenishLevel = new IntegerTextField(30);
@@ -70,15 +72,16 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 
 	private final JXComboBox cbGroup = new JXComboBox();
 	// private final JXComboBox cbLocation = new JXComboBox();
-	private final JXComboBox cbVendor = new JXComboBox();
+	// private final JXComboBox cbVendor = new JXComboBox();
 	private final JButton btnNewGroup = new JButton("New Group");
+
 	// private final JButton btnNewLocation = new JButton("New Location");
-	private final JButton btnNewVendor = new JButton("New Vendor");
+	// private final JButton btnNewVendor = new JButton("New Vendor");
 
 	public InventoryItemEntryForm() {
 		createUI();
-
 		populateComboBoxes();
+		setFieldsEnable(false);
 	}
 
 	private void populateComboBoxes() {
@@ -88,13 +91,16 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		List<InventoryGroup> groups = InventoryGroupDAO.getInstance().findAll();
 		this.cbGroup.setModel(new DefaultComboBoxModel(groups.toArray(new InventoryGroup[0])));
 
+		// List<InventoryVendor> vendors =
+		// InventoryVendorDAO.getInstance().findAll();
+		// this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new
+		// InventoryVendor[0])));
+
 		// List<InventoryLocation> locations =
 		// InventoryLocationDAO.getInstance().findAll();
 		// this.cbLocation.setModel(new
 		// DefaultComboBoxModel(locations.toArray(new InventoryLocation[0])));
 
-		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance().findAll();
-		this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new InventoryVendor[0])));
 	}
 
 	public void createNew() {
@@ -103,11 +109,11 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 
 	public void clearFields() {
 		this.tfName.setText("");
-		this.tfBarcode.setText("");
 		this.tfPackSizeReorderLevel.setText("");
 		this.tfPackSizeReplenishLevel.setText("");
 		this.tfDescription.setText("");
-
+		this.cbGroup.setSelectedIndex(-1);
+		// this.tfBarcode.setText("");
 		// this.tfItemPerPackSize.setText("");
 		// this.tfSortOrder.setText("");
 		// this.tfTotalPackages.setText("");
@@ -115,18 +121,19 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// this.tfPurchase_price.setText("");
 		// this.tfSelling_price.setText("");
 
-		this.cbGroup.setSelectedIndex(-1);
 		// this.cbLocation.setSelectedIndex(-1);
-		this.cbVendor.setSelectedIndex(-1);
+		// this.cbVendor.setSelectedIndex(-1);
 	}
 
 	public void setFieldsEnable(boolean enable) {
 		this.tfName.setEnabled(enable);
-		this.tfBarcode.setEnabled(enable);
+		// this.tfBarcode.setEnabled(enable);
 		this.cbPackagingUnit.setEnabled(enable);
 		this.tfPackSizeReorderLevel.setEnabled(enable);
 		this.tfPackSizeReplenishLevel.setEnabled(enable);
 		this.tfDescription.setEnabled(enable);
+		this.cbGroup.setEnabled(enable);
+		this.btnNewGroup.setEnabled(enable);
 		// this.tfItemPerPackSize.setEnabled(enable);
 		// this.tfSortOrder.setEnabled(enable);
 		// this.tfTotalPackages.setEnabled(enable);
@@ -134,13 +141,11 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// this.tfPurchase_price.setEnabled(enable);
 		// this.tfSelling_price.setEnabled(enable);
 
-		this.cbGroup.setEnabled(enable);
 		// this.cbLocation.setEnabled(enable);
-		this.cbVendor.setEnabled(enable);
+		// this.cbVendor.setEnabled(enable);
 
-		this.btnNewGroup.setEnabled(enable);
 		// this.btnNewLocation.setEnabled(enable);
-		this.btnNewVendor.setEnabled(enable);
+		// this.btnNewVendor.setEnabled(enable);
 	}
 
 	private void createUI() {
@@ -152,8 +157,9 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.mainPanel.add(new JLabel("Name"), "cell 0 0,alignx trailing");
 		this.mainPanel.add(this.tfName, "cell 1 0 3 1,growx");
 
-		this.mainPanel.add(new JLabel("Barcode"), "cell 0 1,alignx trailing");
-		this.mainPanel.add(this.tfBarcode, "cell 1 1 3 1,growx");
+		// this.mainPanel.add(new JLabel("Barcode"),
+		// "cell 0 1,alignx trailing");
+		// this.mainPanel.add(this.tfBarcode, "cell 1 1 3 1,growx");
 
 		this.mainPanel.add(new JLabel("Description"), "cell 0 2,alignx trailing");
 		this.tfDescription.setTabSize(4);
@@ -178,6 +184,22 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 			}
 		});
 		this.mainPanel.add(btnNewUnit, "wrap");
+		this.mainPanel.add(new JLabel("Reorder level"), "cell 0 6,alignx trailing");
+		this.mainPanel.add(this.tfPackSizeReorderLevel, "cell 1 6,growx");
+
+		this.mainPanel.add(new JLabel("Replenish level"), "cell 0 7,alignx trailing");
+		this.mainPanel.add(this.tfPackSizeReplenishLevel, "cell 1 7,growx");
+		this.mainPanel.add(new JLabel(""), "cell 2 12");
+
+		this.mainPanel.add(new JLabel("Group"), "cell 0 13,alignx trailing");
+
+		this.mainPanel.add(this.cbGroup, "cell 1 13 2 1,growx");
+		this.btnNewGroup.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				InventoryItemEntryForm.this.createNewGroup();
+			}
+		});
+		this.mainPanel.add(this.btnNewGroup, "cell 3 13,growx");
 
 		// this.mainPanel.add(new JLabel("Unit per package"),
 		// "cell 0 4,alignx trailing");
@@ -186,12 +208,6 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// this.mainPanel.add(new JLabel("Sort order"),
 		// "cell 0 5,alignx trailing");
 		// this.mainPanel.add(this.tfSortOrder, "cell 1 5,growx");
-
-		this.mainPanel.add(new JLabel("Reorder level"), "cell 0 6,alignx trailing");
-		this.mainPanel.add(this.tfPackSizeReorderLevel, "cell 1 6,growx");
-
-		this.mainPanel.add(new JLabel("Replenish level"), "cell 0 7,alignx trailing");
-		this.mainPanel.add(this.tfPackSizeReplenishLevel, "cell 1 7,growx");
 
 		// this.mainPanel.add(new JLabel("Total package"),
 		// "cell 0 9,alignx trailing");
@@ -210,18 +226,6 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// "cell 0 12,alignx trailing");
 		// this.mainPanel.add(this.tfSelling_price, "cell 1 12,growx");
 
-		this.mainPanel.add(new JLabel(""), "cell 2 12");
-
-		this.mainPanel.add(new JLabel("Group"), "cell 0 13,alignx trailing");
-
-		this.mainPanel.add(this.cbGroup, "cell 1 13 2 1,growx");
-		this.btnNewGroup.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				InventoryItemEntryForm.this.createNewGroup();
-			}
-		});
-		this.mainPanel.add(this.btnNewGroup, "cell 3 13,growx");
-
 		// this.mainPanel.add(new JLabel("Location"),
 		// "cell 0 14,alignx trailing");
 		// this.mainPanel.add(this.cbLocation, "cell 1 14 2 1,growx");
@@ -232,33 +236,35 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// });
 		// this.mainPanel.add(this.btnNewLocation, "cell 3 14,growx");
 
-		this.mainPanel.add(new JLabel("Vendor"), "cell 0 15,alignx trailing");
-
-		this.mainPanel.add(this.cbVendor, "cell 1 15 2 1,growx");
-		this.btnNewVendor.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				InventoryItemEntryForm.this.createNewVendor();
-			}
-		});
-		this.mainPanel.add(this.btnNewVendor, "cell 3 15,growx");
+		// this.mainPanel.add(new JLabel("Vendor"),
+		// "cell 0 15,alignx trailing");
+		//
+		// this.mainPanel.add(this.cbVendor, "cell 1 15 2 1,growx");
+		// this.btnNewVendor.addActionListener(new ActionListener() {
+		// public void actionPerformed(ActionEvent e) {
+		// InventoryItemEntryForm.this.createNewVendor();
+		// }
+		// });
+		// this.mainPanel.add(this.btnNewVendor, "cell 3 15,growx");
 	}
 
-	protected void createNewVendor() {
-		InventoryVendorEntryForm form = new InventoryVendorEntryForm();
-		form.setBean(new InventoryVendor());
-		BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
-		dialog.pack();
-		dialog.open();
-
-		if (dialog.isCanceled()) {
-			return;
-		}
-
-		InventoryVendor inventoryVendor = (InventoryVendor) form.getBean();
-		DefaultComboBoxModel<InventoryVendor> cbModel = (DefaultComboBoxModel) this.cbVendor.getModel();
-		cbModel.addElement(inventoryVendor);
-		cbModel.setSelectedItem(inventoryVendor);
-	}
+	// protected void createNewVendor() {
+	// InventoryVendorEntryForm form = new InventoryVendorEntryForm();
+	// form.setBean(new InventoryVendor());
+	// BeanEditorDialog dialog = new BeanEditorDialog(form,
+	// BackOfficeWindow.getInstance(), true);
+	// dialog.pack();
+	// dialog.open();
+	//
+	// if (dialog.isCanceled()) {
+	// return;
+	// }
+	// InventoryVendor inventoryVendor = (InventoryVendor) form.getBean();
+	// DefaultComboBoxModel<InventoryVendor> cbModel = (DefaultComboBoxModel)
+	// this.cbVendor.getModel();
+	// cbModel.addElement(inventoryVendor);
+	// cbModel.setSelectedItem(inventoryVendor);
+	// }
 
 	protected void createNewLocation() {
 		InventoryLocationEntryForm form = new InventoryLocationEntryForm(new InventoryLocation());
@@ -302,7 +308,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// NumberFormat f = new DecimalFormat("0.##");
 
 		this.tfName.setText(inventoryItem.getName());
-		this.tfBarcode.setText(inventoryItem.getPackageBarcode());
+		// this.tfBarcode.setText(inventoryItem.getPackageBarcode());
 		this.cbPackagingUnit.setSelectedItem(inventoryItem.getPackagingUnit());
 		// this.tfItemPerPackSize.setText(f.format(inventoryItem.getUnitPerPackage()));
 		// this.tfSortOrder.setText(String.valueOf(inventoryItem.getSortOrder()));
@@ -317,7 +323,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 
 		this.cbGroup.setSelectedItem(inventoryItem.getItemGroup());
 		// this.cbLocation.setSelectedItem(inventoryItem.getItemLocation());
-		this.cbVendor.setSelectedItem(inventoryItem.getItemVendor());
+		// this.cbVendor.setSelectedItem(inventoryItem.getItemVendor());
 	}
 
 	String formatDouble(double d) {
@@ -339,7 +345,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		}
 
 		inventoryItem.setName(this.tfName.getText());
-		inventoryItem.setPackageBarcode(this.tfBarcode.getText());
+		// inventoryItem.setPackageBarcode(this.tfBarcode.getText());
 		inventoryItem.setPackagingUnit((PackagingUnit) this.cbPackagingUnit.getSelectedItem());
 
 		inventoryItem.setPackageReorderLevel(Integer.valueOf(this.tfPackSizeReorderLevel.getInteger()));
@@ -358,62 +364,78 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 
 		inventoryItem.setItemGroup((InventoryGroup) this.cbGroup.getSelectedItem());
 		inventoryItem.setItemLocation(null);
-		inventoryItem.setItemVendor((InventoryVendor) this.cbVendor.getSelectedItem());
-
+		inventoryItem.setItemVendor(null);
 		return true;
 	}
 
 	public boolean save() {
+		Session session = InventoryItemDAO.getInstance().createNewSession();
+		Transaction tx = session.beginTransaction();
+		boolean actionPerformed = false;
 		try {
-			updateModel();
-			InventoryItemDAO dao = InventoryItemDAO.getInstance();
-			dao.saveOrUpdate((InventoryItem) getBean());
-			InventoryWarehouseItemDAO wareItemDao = InventoryWarehouseItemDAO.getInstance();
-			InventoryLocationDAO locationDao = InventoryLocationDAO.getInstance();
-			List<InventoryLocation> listLocation = locationDao.findAll();
-			if (listLocation != null) {
-				for (InventoryLocation warehouse : listLocation) {
-					InventoryWarehouseItem item1;
-					item1 = wareItemDao.findByInventoryItemAndInventoryLocation((InventoryItem) getBean(), warehouse);
-					if (item1 == null) {
-						item1 = new InventoryWarehouseItem();
-						item1.setItemLocation(warehouse);
-						item1.setInventoryItem((InventoryItem) getBean());
-						item1.setAveragePackagePrice(0d);
-						item1.setCreateTime(new Date());
-						item1.setTotalRecepieUnits(0d);
-						item1.setUnitPurchasePrice(0d);
-						wareItemDao.save(item1);
+			if (updateModel()) {
+				InventoryItem item = (InventoryItem) getBean();
+				if (item.getPackagingUnit() == null) {
+					actionPerformed = false;
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Packaging unit!!");
+				} else {
+					InventoryItemDAO dao = InventoryItemDAO.getInstance();
+					dao.saveOrUpdate(item);
+					InventoryWarehouseItemDAO wareItemDao = InventoryWarehouseItemDAO.getInstance();
+					InventoryLocationDAO locationDao = InventoryLocationDAO.getInstance();
+					List<InventoryLocation> listLocation = locationDao.findAll();
+					if (listLocation != null) {
+						for (InventoryLocation warehouse : listLocation) {
+							InventoryWarehouseItem item1;
+							item1 = wareItemDao.findByInventoryItemAndInventoryLocation((InventoryItem) getBean(), warehouse);
+							if (item1 == null) {
+								item1 = new InventoryWarehouseItem();
+								item1.setItemLocation(warehouse);
+								item1.setInventoryItem((InventoryItem) getBean());
+								item1.setAveragePackagePrice(0d);
+								item1.setCreateTime(new Date());
+								item1.setTotalRecepieUnits(0d);
+								item1.setUnitPurchasePrice(0d);
+								wareItemDao.save(item1);
+							}
+						}
+						actionPerformed = true;
 					}
-
 				}
 			}
-			return true;
+			if (actionPerformed) {
+				tx.commit();
+			} else {
+				tx.rollback();
+				return false;
+			}
 		} catch (Exception e) {
+			if (tx != null) {
+				tx.rollback();
+			}
+			if (session != null) {
+				session.close();
+			}
 			POSMessageDialog.showError(e.getMessage(), e);
+			return false;
 		}
-
-		return false;
+		return true;
 	}
 
 	public boolean delete() {
 		InventoryItem inventoryItem = (InventoryItem) getBean();
-
 		if (inventoryItem == null) {
 			return false;
 		}
-
 		InventoryItemDAO.getInstance().delete(inventoryItem);
 		return true;
 	}
 
 	public String getDisplayText() {
 		InventoryItem inventoryItem = (InventoryItem) getBean();
-
 		if ((inventoryItem == null) || (inventoryItem.getId() == null)) {
 			return "Add new inventory item";
 		}
-
 		return "Edit inventory item";
 	}
 }

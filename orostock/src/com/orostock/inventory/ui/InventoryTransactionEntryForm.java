@@ -203,6 +203,21 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			int reorderLevel = inventoryItem.getPackageReorderLevel();
 			int replenishLevel = inventoryItem.getPackageReplenishLevel();
 			InventoryTransaction inventoryTransaction = (InventoryTransaction) getBean();
+			if (inventoryTransaction.getQuantity().isNaN()) {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Quantity!!");
+				actionPerformed = false;
+				return false;
+			} else if (inventoryTransaction.getVatPaid().isNaN()) {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
+				actionPerformed = false;
+				return false;
+			} else if (inventoryTransaction.getUnitPrice().isNaN()) {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Price!!");
+				actionPerformed = false;
+				return false;
+			} else {
+				InventoryTransactionDAO.getInstance().saveOrUpdate(inventoryTransaction, session);
+			}
 			InventoryLocationDAO locDAO = InventoryLocationDAO.getInstance();
 			List<InventoryLocation> listLocIn = locDAO.findByInventoryItem((InventoryWarehouse) this.inWareHouse.getSelectedItem());
 			InventoryLocation locationIN = null;
@@ -361,7 +376,6 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 
 			PurchaseOrder purchaseOrder = inventoryTransaction.getReferenceNo();
 			PurchaseOrderDAO.getInstance().saveOrUpdate(purchaseOrder, session);
-			InventoryTransactionDAO.getInstance().saveOrUpdate(inventoryTransaction, session);
 			// InventoryItemDAO.getInstance().saveOrUpdate(this.inventoryItem);
 			if (actionPerformed) {
 				tx.commit();
