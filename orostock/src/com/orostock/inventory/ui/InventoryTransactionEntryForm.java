@@ -46,6 +46,11 @@ import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
 public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransaction> implements ActionListener {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2509122276993566916L;
+
 	private JTextField tfItem;
 	private DoubleTextField tfUnitPrice;
 	private DoubleTextField tfVAT;
@@ -234,9 +239,11 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			InOutEnum inOutEnum = InOutEnum.fromInt(inventoryTransaction.getTransactionType().getInOrOut().intValue());
 			switch (inOutEnum) {
 			case IN:
-				updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()),
-						inventoryTransaction.getUnitPrice() * inventoryTransaction.getQuantity());
-
+				// updateAverageItemPrice(inventoryItem, (int)
+				// (inventoryTransaction.getQuantity() *
+				// inventoryItem.getPackagingUnit().getFactor() * -1),
+				// inventoryTransaction.getUnitPrice() *
+				// inventoryTransaction.getQuantity());
 				InventoryWarehouseItemDAO dao1 = InventoryWarehouseItemDAO.getInstance();
 				InventoryWarehouseItem inventoryWarehouseItem1 = null;
 				if (dao1 != null) {
@@ -254,8 +261,11 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 				// this.inventoryItem.setLastUpdateDate(new Date());
 				break;
 			case OUT:
-				updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor() * -1),
-						inventoryTransaction.getUnitPrice() * inventoryTransaction.getQuantity());
+				// updateAverageItemPrice(inventoryItem, (int)
+				// (inventoryTransaction.getQuantity() *
+				// inventoryItem.getPackagingUnit().getFactor() * -1),
+				// inventoryTransaction.getUnitPrice() *
+				// inventoryTransaction.getQuantity());
 
 				InventoryWarehouseItemDAO dao2 = InventoryWarehouseItemDAO.getInstance();
 				InventoryWarehouseItem inventoryWarehouseItem2 = null;
@@ -380,6 +390,12 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			// InventoryItemDAO.getInstance().saveOrUpdate(this.inventoryItem);
 			if (actionPerformed) {
 				tx.commit();
+				if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
+					updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()),
+							inventoryTransaction.getUnitPrice() * inventoryTransaction.getQuantity());
+				}
+				// POSMessageDialog.showMessage(BackOfficeWindow.getInstance(),
+				// "Inventory Transaction done successfully");
 			} else {
 				tx.rollback();
 			}
@@ -387,15 +403,12 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			if (tx != null) {
 				tx.rollback();
 			}
-
 			if (session != null) {
 				session.close();
 			}
-
 			POSMessageDialog.showError(e.getMessage(), e);
 			return false;
 		}
-
 		return true;
 	}
 

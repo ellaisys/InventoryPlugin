@@ -1,7 +1,5 @@
 package com.orostock.inventory.ui;
 
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileWriter;
@@ -10,19 +8,14 @@ import java.text.NumberFormat;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.filechooser.FileFilter;
-import javax.swing.table.TableColumn;
-import javax.swing.text.TableView.TableRow;
 
 import org.apache.commons.io.IOUtils;
-import org.jdesktop.swingx.JXTable;
 
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.bo.ui.Command;
@@ -50,6 +43,10 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewTransaction.setActionCommand(Command.NEW_TRANSACTION.name());
 		this.btnNewTransaction.setEnabled(false);
+		init(new InventoryItemTableModel());
+		hideDeleteBtn();
+		refreshTable();
+
 		// JButton btnExport = new JButton("Export Items");
 		// btnExport.addActionListener(new ActionListener() {
 		// public void actionPerformed(ActionEvent e) {
@@ -57,7 +54,6 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		// }
 		// });
 		// buttonPanel.add(btnExport);
-		init(new InventoryItemTableModel());
 	}
 
 	protected void exportInventoryItems() {
@@ -203,10 +199,16 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			Double godownRcpQty = 0.0d;
 			double factor = row.getPackagingUnit().getFactor();
 			if (listItems != null && listItems.size() == 2) {
-				cafePcgQty = Math.floor(new Double((listItems.get(0).getTotalRecepieUnits() / factor)));
-				godownPcgQty = Math.floor(new Double((listItems.get(1).getTotalRecepieUnits() / factor)));
-				cafeRcpQty = listItems.get(0).getTotalRecepieUnits() - (cafePcgQty * factor);
-				godownRcpQty = listItems.get(1).getTotalRecepieUnits() - (godownPcgQty * factor);
+				// cafePcgQty = Math.floor(new
+				// Double((listItems.get(0).getTotalRecepieUnits() / factor)));
+				// godownPcgQty = Math.floor(new
+				// Double((listItems.get(1).getTotalRecepieUnits() / factor)));
+				// cafeRcpQty = listItems.get(0).getTotalRecepieUnits() -
+				// (cafePcgQty * factor);
+				// godownRcpQty = listItems.get(1).getTotalRecepieUnits() -
+				// (godownPcgQty * factor);
+				cafeRcpQty = listItems.get(0).getTotalRecepieUnits();
+				godownRcpQty = listItems.get(1).getTotalRecepieUnits();
 			}
 			switch (columnIndex) {
 			case 0:
@@ -221,10 +223,12 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 				// this.f.format(cafeRcpQty) + " "
 				// + row.getPackagingUnit().getShortName();
 				// }
-//				if (row.getPackageReorderLevel() > cafePcgQty) {
-//					TableColumn tc = InventoryItemBrowser.this.browserTable.getColumnModel().getColumn(columnIndex);
-//					tc.setCellRenderer(new ColorColumnRenderer(Color.RED, Color.BLACK, rowIndex, columnIndex));
-//				}
+				// if (row.getPackageReorderLevel() > cafePcgQty) {
+				// TableColumn tc =
+				// InventoryItemBrowser.this.browserTable.getColumnModel().getColumn(columnIndex);
+				// tc.setCellRenderer(new ColorColumnRenderer(Color.RED,
+				// Color.BLACK, rowIndex, columnIndex));
+				// }
 				return this.f.format(cafeRcpQty) + " " + row.getPackagingUnit().getShortName();
 			case 2:
 				// if (godownRcpQty <= 0.0) {

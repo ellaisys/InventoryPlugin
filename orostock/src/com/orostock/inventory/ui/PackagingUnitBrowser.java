@@ -16,12 +16,15 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 	 * 
 	 */
 	private static final long serialVersionUID = 3106023138023315427L;
+	private static PackagingUnitEntryForm pf = new PackagingUnitEntryForm();
 
 	public PackagingUnitBrowser() {
-		super(new PackagingUnitEntryForm());
+		super(pf);
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		init(new PackagingUnitTableModel());
+		hideDeleteBtn();
+		refreshTable();
 	}
 
 	public void loadData() {
@@ -36,10 +39,10 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
 		if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
-			//TODO: disable factor field.
+			pf.setFieldsEnableEdit();
 		}
 	}
-	
+
 	protected void searchPackagingUnit() {
 	}
 

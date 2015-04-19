@@ -30,6 +30,7 @@ public class InventoryVendorBrowser extends ModelBrowser<InventoryVendor> {
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
 		this.btnNewExpense.setEnabled(false);
 		init(new InventoryVendorTableModel());
+		hideDeleteBtn();
 	}
 
 	public void loadData() {

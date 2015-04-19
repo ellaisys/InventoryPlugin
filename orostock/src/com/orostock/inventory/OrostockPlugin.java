@@ -10,12 +10,15 @@ import com.floreantpos.model.MenuItem;
 import com.orostock.inventory.action.InventoryItemBrowserAction;
 import com.orostock.inventory.action.InventoryVendorBrowserAction;
 import com.orostock.inventory.action.PackagingUnitBrowserAction;
+import com.orostock.inventory.ui.ExpenseTransactionBrowserAction;
+import com.orostock.inventory.ui.InventoryTransactionBrowserAction;
 import com.orostock.inventory.ui.recepie.RecepieView;
 
 @PluginImplementation
 public class OrostockPlugin implements InventoryPlugin {
 	public AbstractAction[] getActions() {
-		return new AbstractAction[] { new InventoryItemBrowserAction(), new InventoryVendorBrowserAction(), new PackagingUnitBrowserAction() };
+		return new AbstractAction[] { new InventoryItemBrowserAction(), new InventoryVendorBrowserAction(), new PackagingUnitBrowserAction(),
+				new ExpenseTransactionBrowserAction(), new InventoryTransactionBrowserAction() };
 	}
 
 	// {

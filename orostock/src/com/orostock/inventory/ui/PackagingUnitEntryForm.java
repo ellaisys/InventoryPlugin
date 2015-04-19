@@ -9,7 +9,6 @@ import net.miginfocom.swing.MigLayout;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.floreantpos.PosException;
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.PackagingUnit;
 import com.floreantpos.model.dao.PackagingUnitDAO;
@@ -69,6 +68,12 @@ public class PackagingUnitEntryForm extends BeanEditor<PackagingUnit> {
 		this.tfPName.setEnabled(enable);
 		this.tfRName.setEnabled(enable);
 		this.tfFactor.setEnabled(enable);
+	}
+
+	public void setFieldsEnableEdit() {
+		this.tfPName.setEnabled(true);
+		this.tfRName.setEnabled(true);
+		this.tfFactor.setEnabled(false);
 	}
 
 	public void updateView() {

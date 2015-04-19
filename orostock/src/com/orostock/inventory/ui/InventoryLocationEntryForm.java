@@ -29,151 +29,144 @@ import com.floreantpos.ui.dialog.BeanEditorDialog;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 import com.floreantpos.util.POSUtil;
 
-public class InventoryLocationEntryForm extends BeanEditor<InventoryLocation>
-{
-  private JCheckBox chkVisible;
-  private POSTextField tfName;
-  private JLabel lblSortOrder;
-  private IntegerTextField tfSortOrder;
-  private JLabel lblWarehouse;
-  private JComboBox cbWarehouse;
-  private JButton btnNewWarehouse;
+public class InventoryLocationEntryForm extends BeanEditor<InventoryLocation> {
+	private JCheckBox chkVisible;
+	private POSTextField tfName;
+	private JLabel lblSortOrder;
+	private IntegerTextField tfSortOrder;
+	private JLabel lblWarehouse;
+	private JComboBox cbWarehouse;
+	private JButton btnNewWarehouse;
 
-  public InventoryLocationEntryForm(InventoryLocation ig)
-  {
-    setLayout(new BorderLayout());
+	public InventoryLocationEntryForm(InventoryLocation ig) {
+		setLayout(new BorderLayout());
+		setBean(ig, false);
+		createUI();
+		loadWarehouses();
+		updateView();
+	}
 
-    setBean(ig, false);
+	private void loadWarehouses() {
+		try {
+			List<InventoryWarehouse> warehouses = InventoryWarehouseDAO.getInstance().findAll();
+			if (warehouses.size() > 0)
+				this.cbWarehouse.setModel(new DefaultComboBoxModel(warehouses.toArray(new InventoryWarehouse[0])));
+		} catch (Exception e) {
+			POSMessageDialog.showError(BackOfficeWindow.getInstance(), e.getMessage(), e);
+		}
+	}
 
-    createUI();
+	private void createUI() {
+		JPanel panel = new JPanel();
+		add(panel, "Center");
+		panel.setLayout(new MigLayout("", "[][grow][]", "[][][][]"));
 
-    loadWarehouses();
+		JLabel lblName = new JLabel("Name");
+		panel.add(lblName, "cell 0 0,alignx trailing");
 
-    updateView();
-  }
+		this.tfName = new POSTextField();
+		panel.add(this.tfName, "cell 1 0,growx");
 
-  private void loadWarehouses() {
-    try {
-      List warehouses = InventoryWarehouseDAO.getInstance().findAll();
-      if (warehouses.size() > 0)
-        this.cbWarehouse.setModel(new DefaultComboBoxModel(warehouses.toArray(new InventoryWarehouse[0])));
-    } catch (Exception e) {
-      POSMessageDialog.showError(BackOfficeWindow.getInstance(), e.getMessage(), e);
-    }
-  }
+		this.lblSortOrder = new JLabel("Sort order");
+		panel.add(this.lblSortOrder, "cell 0 1,alignx trailing");
 
-  private void createUI() {
-    JPanel panel = new JPanel();
-    add(panel, "Center");
-    panel.setLayout(new MigLayout("", "[][grow][]", "[][][][]"));
+		this.tfSortOrder = new IntegerTextField();
+		panel.add(this.tfSortOrder, "cell 1 1,growx");
 
-    JLabel lblName = new JLabel("Name");
-    panel.add(lblName, "cell 0 0,alignx trailing");
+		this.lblWarehouse = new JLabel("Warehouse");
+		panel.add(this.lblWarehouse, "cell 0 2,alignx trailing");
 
-    this.tfName = new POSTextField();
-    panel.add(this.tfName, "cell 1 0,growx");
+		this.cbWarehouse = new JComboBox();
+		panel.add(this.cbWarehouse, "cell 1 2,growx");
 
-    this.lblSortOrder = new JLabel("Sort order");
-    panel.add(this.lblSortOrder, "cell 0 1,alignx trailing");
+		this.btnNewWarehouse = new JButton("...");
+		this.btnNewWarehouse.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				InventoryLocationEntryForm.this.createNewWarehouse();
+			}
+		});
+		panel.add(this.btnNewWarehouse, "cell 2 2");
 
-    this.tfSortOrder = new IntegerTextField();
-    panel.add(this.tfSortOrder, "cell 1 1,growx");
+		this.chkVisible = new JCheckBox("Visible", true);
+		panel.add(this.chkVisible, "cell 1 3");
+	}
 
-    this.lblWarehouse = new JLabel("Warehouse");
-    panel.add(this.lblWarehouse, "cell 0 2,alignx trailing");
+	protected void createNewWarehouse() {
+		InventoryWarehouseEntryForm form = new InventoryWarehouseEntryForm(new InventoryWarehouse());
+		BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
+		dialog.pack();
+		dialog.open();
 
-    this.cbWarehouse = new JComboBox();
-    panel.add(this.cbWarehouse, "cell 1 2,growx");
+		if (dialog.isCanceled()) {
+			return;
+		}
 
-    this.btnNewWarehouse = new JButton("...");
-    this.btnNewWarehouse.addActionListener(new ActionListener() {
-      public void actionPerformed(ActionEvent e) {
-        InventoryLocationEntryForm.this.createNewWarehouse();
-      }
-    });
-    panel.add(this.btnNewWarehouse, "cell 2 2");
+		InventoryWarehouse warehouse = (InventoryWarehouse) form.getBean();
+		DefaultComboBoxModel cbModel = (DefaultComboBoxModel) this.cbWarehouse.getModel();
+		cbModel.addElement(warehouse);
+		this.cbWarehouse.setSelectedItem(warehouse);
+	}
 
-    this.chkVisible = new JCheckBox("Visible", true);
-    panel.add(this.chkVisible, "cell 1 3");
-  }
+	public boolean save() {
+		try {
+			if (!updateModel()) {
+				return false;
+			}
 
-  protected void createNewWarehouse()
-  {
-    InventoryWarehouseEntryForm form = new InventoryWarehouseEntryForm(new InventoryWarehouse());
-    BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
-    dialog.pack();
-    dialog.open();
+			InventoryLocation model = (InventoryLocation) getBean();
+			InventoryLocationDAO.getInstance().saveOrUpdate(model);
 
-    if (dialog.isCanceled()) {
-      return;
-    }
+			return true;
+		} catch (Exception e) {
+			POSMessageDialog.showError(e.getMessage());
+		}
 
-    InventoryWarehouse warehouse = (InventoryWarehouse)form.getBean();
-    DefaultComboBoxModel cbModel = (DefaultComboBoxModel)this.cbWarehouse.getModel();
-    cbModel.addElement(warehouse);
-    this.cbWarehouse.setSelectedItem(warehouse);
-  }
+		return false;
+	}
 
-  public boolean save() {
-    try {
-      if (!updateModel()) {
-        return false;
-      }
+	public void updateView() {
+		InventoryLocation model = (InventoryLocation) getBean();
 
-      InventoryLocation model = (InventoryLocation)getBean();
-      InventoryLocationDAO.getInstance().saveOrUpdate(model);
+		if (model == null) {
+			return;
+		}
 
-      return true;
-    } catch (Exception e) {
-      POSMessageDialog.showError(e.getMessage());
-    }
+		this.tfName.setText(model.getName());
+		this.tfSortOrder.setText(String.valueOf(model.getSortOrder()));
+		this.cbWarehouse.setSelectedItem(model.getWarehouse());
 
-    return false;
-  }
+		if (model.getId() != null)
+			this.chkVisible.setSelected(POSUtil.getBoolean(model.isVisible()));
+	}
 
-  public void updateView() {
-    InventoryLocation model = (InventoryLocation)getBean();
+	public boolean updateModel() {
+		InventoryLocation model = (InventoryLocation) getBean();
 
-    if (model == null)
-    {
-      return;
-    }
+		if (model == null) {
+			model = new InventoryLocation();
+		}
 
-    this.tfName.setText(model.getName());
-    this.tfSortOrder.setText(String.valueOf(model.getSortOrder()));
-    this.cbWarehouse.setSelectedItem(model.getWarehouse());
+		String nameString = this.tfName.getText();
+		if (StringUtils.isEmpty(nameString)) {
+			throw new PosException("Name cannot be empty");
+		}
 
-    if (model.getId() != null)
-      this.chkVisible.setSelected(POSUtil.getBoolean(model.isVisible()));
-  }
+		model.setName(nameString);
+		model.setSortOrder(Integer.valueOf(this.tfSortOrder.getInteger()));
+		model.setWarehouse((InventoryWarehouse) this.cbWarehouse.getSelectedItem());
+		model.setVisible(Boolean.valueOf(this.chkVisible.isSelected()));
 
-  public boolean updateModel() {
-    InventoryLocation model = (InventoryLocation)getBean();
+		return true;
+	}
 
-    if (model == null) {
-      model = new InventoryLocation();
-    }
-
-    String nameString = this.tfName.getText();
-    if (StringUtils.isEmpty(nameString)) {
-      throw new PosException("Name cannot be empty");
-    }
-
-    model.setName(nameString);
-    model.setSortOrder(Integer.valueOf(this.tfSortOrder.getInteger()));
-    model.setWarehouse((InventoryWarehouse)this.cbWarehouse.getSelectedItem());
-    model.setVisible(Boolean.valueOf(this.chkVisible.isSelected()));
-
-    return true;
-  }
-
-  public String getDisplayText()
-  {
-    return "Add inventory location";
-  }
+	public String getDisplayText() {
+		return "Add inventory location";
+	}
 }
 
-/* Location:           C:\Users\SOMYA\Downloads\floreantpos_14452\floreantpos-1.4-build556\plugins\orostock-0.1.jar
- * Qualified Name:     com.orostock.inventory.ui.InventoryLocationEntryForm
- * JD-Core Version:    0.6.0
+/*
+ * Location:
+ * C:\Users\SOMYA\Downloads\floreantpos_14452\floreantpos-1.4-build556\
+ * plugins\orostock-0.1.jar Qualified Name:
+ * com.orostock.inventory.ui.InventoryLocationEntryForm JD-Core Version: 0.6.0
  */
