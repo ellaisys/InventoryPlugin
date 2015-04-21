@@ -25,6 +25,7 @@ public class PackagingUnitEntryForm extends BeanEditor<PackagingUnit> {
 	private POSTextField tfPName;
 	private POSTextField tfRName;
 	private DoubleTextField tfFactor;
+	private JLabel fLabel;
 	JPanel mainPanel = new JPanel();
 
 	public PackagingUnitEntryForm() {
@@ -46,7 +47,7 @@ public class PackagingUnitEntryForm extends BeanEditor<PackagingUnit> {
 		this.tfRName = new POSTextField();
 		mainPanel.add(this.tfRName, "grow, wrap");
 
-		mainPanel.add(new JLabel("Factor"));
+		mainPanel.add(fLabel = new JLabel("Factor"));
 		this.tfFactor = new DoubleTextField(20);
 		this.tfFactor.setText("");
 		mainPanel.add(this.tfFactor, "grow, wrap");
@@ -73,7 +74,8 @@ public class PackagingUnitEntryForm extends BeanEditor<PackagingUnit> {
 	public void setFieldsEnableEdit() {
 		this.tfPName.setEnabled(true);
 		this.tfRName.setEnabled(true);
-		this.tfFactor.setEnabled(false);
+		this.tfFactor.setEnabled(true);
+		this.fLabel.setEnabled(true);
 	}
 
 	public void updateView() {

@@ -17,100 +17,97 @@ import com.floreantpos.swing.POSTextField;
 import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
-public class InventoryGroupEntryForm extends BeanEditor<InventoryGroup>
-{
-  private JCheckBox chkVisible;
-  private POSTextField tfName;
+public class InventoryGroupEntryForm extends BeanEditor<InventoryGroup> {
+	private JCheckBox chkVisible;
+	private POSTextField tfName;
 
-  public InventoryGroupEntryForm()
-  {
-    createUI();
-  }
+	public InventoryGroupEntryForm() {
+		createUI();
+	}
 
-  public InventoryGroupEntryForm(InventoryGroup inventoryGroup) {
-    createUI();
+	public InventoryGroupEntryForm(InventoryGroup inventoryGroup) {
+		createUI();
 
-    setBean(inventoryGroup);
-  }
+		setBean(inventoryGroup);
+	}
 
-  private void createUI() {
-    setLayout(new BorderLayout(0, 0));
+	private void createUI() {
+		setLayout(new BorderLayout(0, 0));
 
-    JPanel panel = new JPanel();
-    add(panel);
-    panel.setLayout(new MigLayout("", "[][grow]", "[][]"));
+		JPanel panel = new JPanel();
+		add(panel);
+		panel.setLayout(new MigLayout("", "[][grow]", "[][]"));
 
-    JLabel lblName = new JLabel("Name");
-    panel.add(lblName, "cell 0 0,alignx trailing");
+		JLabel lblName = new JLabel("Name");
+		panel.add(lblName, "cell 0 0,alignx trailing");
 
-    this.tfName = new POSTextField();
-    panel.add(this.tfName, "cell 1 0,growx");
+		this.tfName = new POSTextField();
+		panel.add(this.tfName, "cell 1 0,growx");
 
-    this.chkVisible = new JCheckBox("Visible", true);
-    panel.add(this.chkVisible, "cell 1 1");
-  }
+		this.chkVisible = new JCheckBox("Visible", true);
+		panel.add(this.chkVisible, "cell 1 1");
+	}
 
-  public void clearView() {
-    this.tfName.setText("");
-    this.chkVisible.setSelected(true);
-  }
+	public void clearView() {
+		this.tfName.setText("");
+		this.chkVisible.setSelected(true);
+	}
 
-  public void updateView() {
-    InventoryGroup inventoryGroup = (InventoryGroup)getBean();
+	public void updateView() {
+		InventoryGroup inventoryGroup = (InventoryGroup) getBean();
 
-    if (inventoryGroup == null) {
-      clearView();
-      return;
-    }
+		if (inventoryGroup == null) {
+			clearView();
+			return;
+		}
 
-    this.tfName.setText(inventoryGroup.getName());
-    this.chkVisible.setSelected(inventoryGroup.isVisible().booleanValue());
-  }
+		this.tfName.setText(inventoryGroup.getName());
+		this.chkVisible.setSelected(inventoryGroup.isVisible().booleanValue());
+	}
 
-  public boolean updateModel() {
-    InventoryGroup inventoryGroup = (InventoryGroup)getBean();
+	public boolean updateModel() {
+		InventoryGroup inventoryGroup = (InventoryGroup) getBean();
 
-    if (inventoryGroup == null) {
-      inventoryGroup = new InventoryGroup();
-    }
+		if (inventoryGroup == null) {
+			inventoryGroup = new InventoryGroup();
+		}
 
-    String nameString = this.tfName.getText();
-    if (StringUtils.isEmpty(nameString)) {
-      throw new PosException("Name cannot be empty");
-    }
+		String nameString = this.tfName.getText();
+		if (StringUtils.isEmpty(nameString)) {
+			throw new PosException("Name cannot be empty");
+		}
 
-    inventoryGroup.setName(nameString);
-    inventoryGroup.setVisible(Boolean.valueOf(this.chkVisible.isSelected()));
+		inventoryGroup.setName(nameString);
+		inventoryGroup.setVisible(Boolean.valueOf(this.chkVisible.isSelected()));
 
-    return true;
-  }
+		return true;
+	}
 
-  public String getDisplayText()
-  {
-    return "Add inventory Group";
-  }
+	public String getDisplayText() {
+		return "Add inventory Group";
+	}
 
-  public boolean save()
-  {
-    try
-    {
-      if (!updateModel()) {
-        return false;
-      }
+	public boolean save() {
+		try {
+			if (!updateModel()) {
+				return false;
+			}
 
-      InventoryGroup model = (InventoryGroup)getBean();
-      InventoryGroupDAO.getInstance().saveOrUpdate(model);
+			InventoryGroup model = (InventoryGroup) getBean();
+			InventoryGroupDAO.getInstance().saveOrUpdate(model);
 
-      return true;
-    } catch (Exception e) {
-      POSMessageDialog.showError(e.getMessage());
-    }
+			return true;
+		} catch (Exception e) {
+			POSMessageDialog.showError(e.getMessage());
+		}
 
-    return false;
-  }
+		return false;
+	}
 }
 
-/* Location:           C:\Users\SOMYA\Downloads\floreantpos_14452\floreantpos-1.4-build556\plugins\orostock-0.1.jar
- * Qualified Name:     com.orostock.inventory.ui.InventoryGroupEntryForm
- * JD-Core Version:    0.6.0
+/*
+ * Location:
+ * C:\Users\SOMYA\Downloads\floreantpos_14452\floreantpos-1.4-build556\
+ * plugins\orostock-0.1.jar Qualified Name:
+ * com.orostock.inventory.ui.InventoryGroupEntryForm JD-Core Version: 0.6.0
  */

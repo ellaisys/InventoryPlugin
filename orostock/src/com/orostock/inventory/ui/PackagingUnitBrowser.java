@@ -24,6 +24,7 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 		this.browserPanel.add(buttonPanel, "South");
 		init(new PackagingUnitTableModel());
 		hideDeleteBtn();
+		pf.setFieldsEnableEdit();
 		refreshTable();
 	}
 

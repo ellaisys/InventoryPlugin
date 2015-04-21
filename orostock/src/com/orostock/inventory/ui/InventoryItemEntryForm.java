@@ -1,15 +1,12 @@
 package com.orostock.inventory.ui;
 
 import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -27,11 +24,13 @@ import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.InventoryGroup;
 import com.floreantpos.model.InventoryItem;
 import com.floreantpos.model.InventoryLocation;
+import com.floreantpos.model.InventoryVendor;
 import com.floreantpos.model.InventoryWarehouseItem;
 import com.floreantpos.model.PackagingUnit;
 import com.floreantpos.model.dao.InventoryGroupDAO;
 import com.floreantpos.model.dao.InventoryItemDAO;
 import com.floreantpos.model.dao.InventoryLocationDAO;
+import com.floreantpos.model.dao.InventoryVendorDAO;
 import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
 import com.floreantpos.model.dao.PackagingUnitDAO;
 import com.floreantpos.swing.FixedLengthTextField;
@@ -67,10 +66,10 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	private final JXComboBox cbPackagingUnit = new JXComboBox(this.unitModel);
 
 	private final JXComboBox cbGroup = new JXComboBox();
-	private final JButton btnNewGroup = new JButton("New Group");
+	// private final JButton btnNewGroup = new JButton("New Group");
 
 	// private final JXComboBox cbLocation = new JXComboBox();
-	// private final JXComboBox cbVendor = new JXComboBox();
+	private final JXComboBox cbVendor = new JXComboBox();
 
 	// private final JButton btnNewLocation = new JButton("New Location");
 	// private final JButton btnNewVendor = new JButton("New Vendor");
@@ -88,10 +87,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		List<InventoryGroup> groups = InventoryGroupDAO.getInstance().findAll();
 		this.cbGroup.setModel(new DefaultComboBoxModel(groups.toArray(new InventoryGroup[0])));
 
-		// List<InventoryVendor> vendors =
-		// InventoryVendorDAO.getInstance().findAll();
-		// this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new
-		// InventoryVendor[0])));
+		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance().findAll();
+		this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new InventoryVendor[0])));
 
 		// List<InventoryLocation> locations =
 		// InventoryLocationDAO.getInstance().findAll();
@@ -119,7 +116,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// this.tfSelling_price.setText("");
 
 		// this.cbLocation.setSelectedIndex(-1);
-		// this.cbVendor.setSelectedIndex(-1);
+		this.cbVendor.setSelectedIndex(-1);
 	}
 
 	public void setFieldsEnable(boolean enable) {
@@ -130,7 +127,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.tfPackSizeReplenishLevel.setEnabled(enable);
 		this.tfDescription.setEnabled(enable);
 		this.cbGroup.setEnabled(enable);
-		this.btnNewGroup.setEnabled(enable);
+		// this.btnNewGroup.setEnabled(enable);
 		// this.tfItemPerPackSize.setEnabled(enable);
 		// this.tfSortOrder.setEnabled(enable);
 		// this.tfTotalPackages.setEnabled(enable);
@@ -139,7 +136,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// this.tfSelling_price.setEnabled(enable);
 
 		// this.cbLocation.setEnabled(enable);
-		// this.cbVendor.setEnabled(enable);
+		this.cbVendor.setEnabled(enable);
 
 		// this.btnNewLocation.setEnabled(enable);
 		// this.btnNewVendor.setEnabled(enable);
@@ -192,12 +189,12 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.mainPanel.add(new JLabel("Group"), "cell 0 13,alignx trailing");
 
 		this.mainPanel.add(this.cbGroup, "cell 1 13 2 1,growx");
-		this.btnNewGroup.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				InventoryItemEntryForm.this.createNewGroup();
-			}
-		});
-		this.mainPanel.add(this.btnNewGroup, "cell 3 13,growx");
+		// this.btnNewGroup.addActionListener(new ActionListener() {
+		// public void actionPerformed(ActionEvent e) {
+		// InventoryItemEntryForm.this.createNewGroup();
+		// }
+		// });
+		// this.mainPanel.add(this.btnNewGroup, "cell 3 13,growx");
 
 		// this.mainPanel.add(new JLabel("Unit per package"),
 		// "cell 0 4,alignx trailing");
@@ -234,10 +231,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// });
 		// this.mainPanel.add(this.btnNewLocation, "cell 3 14,growx");
 
-		// this.mainPanel.add(new JLabel("Vendor"),
-		// "cell 0 15,alignx trailing");
-		//
-		// this.mainPanel.add(this.cbVendor, "cell 1 15 2 1,growx");
+		this.mainPanel.add(new JLabel("Vendor"), "cell 0 15,alignx trailing");
+		this.mainPanel.add(this.cbVendor, "cell 1 15 2 1,growx");
 		// this.btnNewVendor.addActionListener(new ActionListener() {
 		// public void actionPerformed(ActionEvent e) {
 		// InventoryItemEntryForm.this.createNewVendor();
@@ -282,20 +277,23 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// cbModel.setSelectedItem(inventoryLocation);
 	}
 
-	protected void createNewGroup() {
-		InventoryGroupEntryForm form = new InventoryGroupEntryForm(new InventoryGroup());
-		BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
-		dialog.pack();
-		dialog.open();
-		if (dialog.isCanceled()) {
-			return;
-		}
-
-		InventoryGroup inventoryGroup = (InventoryGroup) form.getBean();
-		DefaultComboBoxModel<InventoryGroup> cbModel = (DefaultComboBoxModel) this.cbGroup.getModel();
-		cbModel.addElement(inventoryGroup);
-		cbModel.setSelectedItem(inventoryGroup);
-	}
+	// protected void createNewGroup() {
+	// InventoryGroupEntryForm form = new InventoryGroupEntryForm(new
+	// InventoryGroup());
+	// BeanEditorDialog dialog = new BeanEditorDialog(form,
+	// BackOfficeWindow.getInstance(), true);
+	// dialog.pack();
+	// dialog.open();
+	// if (dialog.isCanceled()) {
+	// return;
+	// }
+	//
+	// InventoryGroup inventoryGroup = (InventoryGroup) form.getBean();
+	// DefaultComboBoxModel<InventoryGroup> cbModel = (DefaultComboBoxModel)
+	// this.cbGroup.getModel();
+	// cbModel.addElement(inventoryGroup);
+	// cbModel.setSelectedItem(inventoryGroup);
+	// }
 
 	public void updateView() {
 		InventoryItem inventoryItem = (InventoryItem) getBean();
@@ -320,7 +318,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		// this.tfPurchase_price.setText(f.format(inventoryItem.getUnitPurchasePrice()));
 		// this.tfSelling_price.setText(f.format(inventoryItem.getUnitSellingPrice()));
 		// this.cbLocation.setSelectedItem(inventoryItem.getItemLocation());
-		// this.cbVendor.setSelectedItem(inventoryItem.getItemVendor());
+		this.cbVendor.setSelectedItem(inventoryItem.getItemVendor());
 	}
 
 	String formatDouble(double d) {

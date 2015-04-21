@@ -20,8 +20,8 @@ import net.miginfocom.swing.MigLayout;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.jdesktop.swingx.JXComboBox;
-import org.jdesktop.swingx.JXDatePicker;
 
+import com.date.picker.DateTimePicker;
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.InOutEnum;
 import com.floreantpos.model.InventoryItem;
@@ -63,11 +63,15 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	private JLabel outWareHouseLabel;
 	private JLabel priceLabel;
 	private JLabel itemCountLabel;
-	private JXDatePicker datePicker;
+	private DateTimePicker datePicker;
 	private JTextArea taNote;
 	private JCheckBox creditCheck;
 	private DoubleTextField tfUnit;
 	private InventoryItem inventoryItem;
+	private JLabel dateLabel;
+	private JLabel vatLabel;
+	private JLabel itemLabel;
+	private JLabel transLabel;
 
 	public InventoryTransactionEntryForm() {
 		createUI();
@@ -124,7 +128,10 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 				totalRecepieUnits = totalRecepieUnits + i.getTotalRecepieUnits();
 			}
 		}
-		double averagePrice = ((totalRecepieUnits * item.getAverageRUnitPrice()) + totalPaid) / (totalRecepieUnits + newRecepieUnits);
+		double averagePrice = inventoryItem.getAverageRUnitPrice();
+		if (newRecepieUnits > 0) {
+			averagePrice = ((totalRecepieUnits * item.getAverageRUnitPrice()) + totalPaid) / (totalRecepieUnits + newRecepieUnits);
+		}
 		inventoryItem.setAverageRUnitPrice(averagePrice);
 		InventoryItemDAO.getInstance().saveOrUpdate(inventoryItem);
 	}
@@ -136,12 +143,12 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		// this.tfPO = new JTextField(10);
 		// add(this.tfPO, "wrap, w 150px");
 
-		add(new JLabel("Transaction Type"));
+		add(this.transLabel = new JLabel("Transaction Type"));
 		this.cbTransactionType = new JXComboBox();
 		this.cbTransactionType.addActionListener(this);
 		add(this.cbTransactionType, "wrap, w 150px");
 
-		add(new JLabel("Item"));
+		add(this.itemLabel = new JLabel("Item"));
 		this.tfItem = new JTextField(20);
 		this.tfItem.setEnabled(false);
 		add(this.tfItem, "grow, wrap");
@@ -150,9 +157,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.tfUnitPrice = new DoubleTextField(20);
 		add(this.tfUnitPrice, "grow, wrap");
 
-		add(new JLabel("VAT Paid"));
+		add(this.vatLabel = new JLabel("VAT Paid"));
 		this.tfVAT = new DoubleTextField(20);
-		this.tfVAT.setText("0.0");
 		add(this.tfVAT, "grow, wrap");
 
 		// add(new JLabel("Credit"));
@@ -163,8 +169,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.tfUnit = new DoubleTextField(20);
 		add(this.tfUnit, "grow, wrap");
 
-		add(new JLabel("Date"));
-		this.datePicker = new JXDatePicker(new Date());
+		add(this.dateLabel = new JLabel("Date"));
+		this.datePicker = new DateTimePicker(new Date());
 		add(this.datePicker, "wrap, w 200px");
 
 		add(this.vendorLabel = new JLabel("Vendor"));
@@ -209,7 +215,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			int reorderLevel = inventoryItem.getPackageReorderLevel();
 			int replenishLevel = inventoryItem.getPackageReplenishLevel();
 			InventoryTransaction inventoryTransaction = (InventoryTransaction) getBean();
-			if (inventoryTransaction.getQuantity() == null || inventoryTransaction.getQuantity().isNaN()) {
+			if (inventoryTransaction.getQuantity() == null || inventoryTransaction.getQuantity().isNaN() || inventoryTransaction.getQuantity() <= 0) {
 				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Quantity!!");
 				actionPerformed = false;
 				return false;
@@ -413,6 +419,46 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	}
 
 	protected void updateView() {
+		InventoryTransaction transaction = (InventoryTransaction) getBean();
+		if (transaction == null) {
+			return;
+		}
+		if (transaction.getInventoryItem() != null) {
+			this.tfItem.setText(transaction.getInventoryItem().getName());
+		}
+		if (transaction.getTransactionType() != null) {
+			this.cbTransactionType.setSelectedItem(transaction.getTransactionType());
+			InOutEnum inOutEnum = InOutEnum.fromInt(transaction.getTransactionType().getInOrOut().intValue());
+			if (inOutEnum == InOutEnum.IN) {
+				this.inWareHouse.setSelectedItem(transaction.getToWarehouse());
+			} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE) {
+				this.outWareHouse.setSelectedItem(transaction.getFromWarehouse());
+			} else if (inOutEnum == InOutEnum.MOVEMENT) {
+				this.inWareHouse.setSelectedItem(transaction.getToWarehouse());
+				this.outWareHouse.setSelectedItem(transaction.getFromWarehouse());
+			}
+		}
+		if (transaction.getUnitPrice() != null && !transaction.getUnitPrice().isNaN()) {
+			this.tfUnitPrice.setText(transaction.getUnitPrice().toString());
+		}
+		if (transaction.getVatPaid() != null && !transaction.getVatPaid().isNaN()) {
+			this.tfVAT.setText(transaction.getVatPaid().toString());
+		}
+		if (transaction.getQuantity() != null && !transaction.getQuantity().isNaN()) {
+			this.tfUnit.setText(transaction.getQuantity().toString());
+		}
+		if (transaction.getVendor() != null) {
+			this.cbVendor.setSelectedItem(transaction.getVendor());
+		}
+		if (transaction.getRemark() != null) {
+			this.taNote.setText(transaction.getRemark().toString());
+		}
+		if (transaction.getTransactionDate() != null) {
+			this.datePicker.setDate(transaction.getTransactionDate());
+		}
+		if (transaction.getCreditCheck() != null) {
+			this.creditCheck.setSelected(transaction.getCreditCheck());
+		}
 	}
 
 	protected boolean updateModel() throws IllegalModelStateException {
@@ -494,9 +540,12 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.cbVendor.setVisible(false);
 			this.outWareHouseLabel.setVisible(true);
 			this.inWareHouseLabel.setVisible(true);
+			this.vatLabel.setVisible(false);
+			this.tfVAT.setVisible(false);
 			this.vendorLabel.setVisible(false);
 			this.priceLabel.setVisible(false);
 			this.tfUnitPrice.setVisible(false);
+			this.creditCheck.setVisible(false);
 			break;
 		case ADJUSTMENT:
 		case WASTAGE:
@@ -505,6 +554,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.cbVendor.setVisible(false);
 			this.outWareHouseLabel.setVisible(true);
 			this.inWareHouseLabel.setVisible(false);
+			this.vatLabel.setVisible(false);
+			this.tfVAT.setVisible(false);
 			this.vendorLabel.setVisible(false);
 			this.priceLabel.setVisible(false);
 			this.tfUnitPrice.setVisible(false);
@@ -513,6 +564,29 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			break;
 		}
 
+	}
+
+	public void setFieldsEnableEdit() {
+		this.tfItem.setEnabled(false);
+		this.tfUnitPrice.setEnabled(false);
+		this.tfVAT.setEnabled(false);
+		this.cbTransactionType.setEnabled(false);
+		this.cbVendor.setEnabled(false);
+		this.inWareHouse.setEnabled(false);
+		this.outWareHouse.setEnabled(false);
+		this.vendorLabel.setEnabled(false);
+		this.inWareHouseLabel.setEnabled(false);
+		this.outWareHouseLabel.setEnabled(false);
+		this.priceLabel.setEnabled(false);
+		this.itemCountLabel.setEnabled(false);
+		this.datePicker.setEnabled(false);
+		this.taNote.setEnabled(true);
+		this.creditCheck.setEnabled(false);
+		this.tfUnit.setEnabled(false);
+		this.dateLabel.setEnabled(false);
+		this.vatLabel.setEnabled(false);
+		this.itemLabel.setEnabled(false);
+		this.transLabel.setEnabled(false);
 	}
 }
 

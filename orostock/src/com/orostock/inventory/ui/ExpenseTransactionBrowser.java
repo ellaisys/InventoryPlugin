@@ -1,6 +1,7 @@
 package com.orostock.inventory.ui;
 
 import java.awt.event.ActionEvent;
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -32,6 +33,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		init(new ExpenseTransactionTableModel());
 		hideDeleteBtn();
 		hideNewBtn();
+		et.setFieldsEnableEdit();
 		refreshTable();
 	}
 
@@ -100,20 +102,21 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 					if (row.getTransactionType() != null) {
 						return row.getTransactionType().getName();
 					} else {
-						return null;
+						return "";
 					}
 
 				case 1:
 					if (row.getTransactionDate() != null) {
-						return row.getTransactionDate().toString();
+						SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yy HH:mm");
+						return simpleDateFormat.format(row.getTransactionDate());
 					} else {
-						return null;
+						return "";
 					}
 				case 2:
 					if (row.getVendor().getName() != null) {
 						return row.getVendor().getName();
 					} else {
-						return null;
+						return "";
 					}
 				case 3:
 					return row.getAmount();
@@ -121,10 +124,10 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 				case 4:
 					return row.getVatPaid();
 				case 5:
-					if (row.getCreditCheck() != null) {
-						return row.getCreditCheck().toString();
+					if (row.getCreditCheck()) {
+						return "T";
 					} else {
-						return null;
+						return "F";
 					}
 				case 6:
 					return row.getRemark();

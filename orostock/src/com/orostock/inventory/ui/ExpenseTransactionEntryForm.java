@@ -17,8 +17,8 @@ import net.miginfocom.swing.MigLayout;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.jdesktop.swingx.JXComboBox;
-import org.jdesktop.swingx.JXDatePicker;
 
+import com.date.picker.DateTimePicker;
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.ExpenseTransaction;
 import com.floreantpos.model.ExpenseTransactionType;
@@ -42,7 +42,7 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 	private DoubleTextField tfVAT;
 	private JXComboBox cbTransactionType;
 	private JXComboBox cbVendor;
-	private JXDatePicker datePicker;
+	private DateTimePicker datePicker;
 	private JTextArea taNote;
 	private JCheckBox creditCheck;
 	private JLabel vendorLabel;
@@ -110,7 +110,7 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		add(this.creditCheck, "grow, wrap");
 
 		add(dateLabel = new JLabel("Date"));
-		this.datePicker = new JXDatePicker();
+		this.datePicker = new DateTimePicker();
 		datePicker.setFormats("dd-MM-yyyy HH:mm");
 		datePicker.setDate(new Date());
 		add(this.datePicker, "wrap, w 200px");
