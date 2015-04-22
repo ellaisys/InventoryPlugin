@@ -139,10 +139,6 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	private void createUI() {
 		setLayout(new MigLayout());
 
-		// add(new JLabel("Reference#"));
-		// this.tfPO = new JTextField(10);
-		// add(this.tfPO, "wrap, w 150px");
-
 		add(this.transLabel = new JLabel("Transaction Type"));
 		this.cbTransactionType = new JXComboBox();
 		this.cbTransactionType.addActionListener(this);
@@ -205,217 +201,200 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 
 	public boolean save() {
 		Session session = InventoryTransactionDAO.getInstance().createNewSession();
-		Transaction tx = session.beginTransaction();
+		if (session != null) {
+			Transaction tx = session.beginTransaction();
 
-		boolean actionPerformed = false;
-		try {
-			if (!updateModel()) {
-				return false;
-			}
-			int reorderLevel = inventoryItem.getPackageReorderLevel();
-			int replenishLevel = inventoryItem.getPackageReplenishLevel();
-			InventoryTransaction inventoryTransaction = (InventoryTransaction) getBean();
-			if (inventoryTransaction.getQuantity() == null || inventoryTransaction.getQuantity().isNaN() || inventoryTransaction.getQuantity() <= 0) {
-				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Quantity!!");
-				actionPerformed = false;
-				return false;
-			} else if (inventoryTransaction.getVatPaid() == null || inventoryTransaction.getVatPaid().isNaN()) {
-				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
-				actionPerformed = false;
-				return false;
-			} else if (inventoryTransaction.getUnitPrice() == null || inventoryTransaction.getUnitPrice().isNaN()) {
-				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Price!!");
-				actionPerformed = false;
-				return false;
-			} else {
-				InventoryTransactionDAO.getInstance().saveOrUpdate(inventoryTransaction, session);
-			}
-			InventoryLocationDAO locDAO = InventoryLocationDAO.getInstance();
-			List<InventoryLocation> listLocIn = locDAO.findByInventoryItem((InventoryWarehouse) this.inWareHouse.getSelectedItem());
-			InventoryLocation locationIN = null;
-			if (listLocIn != null && !listLocIn.isEmpty()) {
-				locationIN = listLocIn.get(0);
-			}
-
-			List<InventoryLocation> listLocOut = locDAO.findByInventoryItem((InventoryWarehouse) this.outWareHouse.getSelectedItem());
-			InventoryLocation locationOUT = null;
-			if (listLocOut != null && !listLocOut.isEmpty()) {
-				locationOUT = listLocOut.get(0);
-			}
-			InOutEnum inOutEnum = InOutEnum.fromInt(inventoryTransaction.getTransactionType().getInOrOut().intValue());
-			switch (inOutEnum) {
-			case IN:
-				// updateAverageItemPrice(inventoryItem, (int)
-				// (inventoryTransaction.getQuantity() *
-				// inventoryItem.getPackagingUnit().getFactor() * -1),
-				// inventoryTransaction.getUnitPrice() *
-				// inventoryTransaction.getQuantity());
-				InventoryWarehouseItemDAO dao1 = InventoryWarehouseItemDAO.getInstance();
-				InventoryWarehouseItem inventoryWarehouseItem1 = null;
-				if (dao1 != null) {
-					inventoryWarehouseItem1 = dao1.findByInventoryItemAndInventoryLocation(inventoryItem, locationIN);
+			boolean actionPerformed = false;
+			try {
+				if (!updateModel()) {
+					return false;
 				}
-				double recepieUnits1 = inventoryWarehouseItem1.getTotalRecepieUnits();
-				inventoryWarehouseItem1.setTotalRecepieUnits(recepieUnits1
-						+ (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()));
-				inventoryWarehouseItem1.setLastUpdateDate(new Date());
-				inventoryWarehouseItem1.setUnitPurchasePrice(0.0d);
-				dao1.saveOrUpdate(inventoryWarehouseItem1);
-				actionPerformed = true;
-				// this.inventoryItem.setTotalPackages(Integer.valueOf(this.inventoryItem.getTotalPackages().intValue()
-				// + inventoryTransaction.getQuantity().intValue()));
-				// this.inventoryItem.setLastUpdateDate(new Date());
-				break;
-			case OUT:
-				// updateAverageItemPrice(inventoryItem, (int)
-				// (inventoryTransaction.getQuantity() *
-				// inventoryItem.getPackagingUnit().getFactor() * -1),
-				// inventoryTransaction.getUnitPrice() *
-				// inventoryTransaction.getQuantity());
-
-				InventoryWarehouseItemDAO dao2 = InventoryWarehouseItemDAO.getInstance();
-				InventoryWarehouseItem inventoryWarehouseItem2 = null;
-				if (dao2 != null) {
-					inventoryWarehouseItem2 = dao2.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
-				}
-				double recepieUnits2 = inventoryWarehouseItem2.getTotalRecepieUnits();
-				double unitsToBeRemoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor());
-				if (recepieUnits2 >= unitsToBeRemoved) {
-					inventoryWarehouseItem2.setTotalRecepieUnits(recepieUnits2 - unitsToBeRemoved);
-					inventoryWarehouseItem2.setLastUpdateDate(new Date());
-					inventoryWarehouseItem2.setUnitPurchasePrice(0.0d);
-					dao2.saveOrUpdate(inventoryWarehouseItem2);
-					actionPerformed = true;
-					int noOfItemsNow = (int) ((recepieUnits2 - unitsToBeRemoved) / inventoryItem.getPackagingUnit().getFactor());
-					if (locationOUT.getName().toLowerCase().contains("cafe")) {
-						if (noOfItemsNow <= replenishLevel) {
-							POSMessageDialog
-									.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName()
-											+ "left in Cafe. Please bring more from Godown!");
-						}
-					} else if (locationOUT.getName().toLowerCase().contains("godown")) {
-						if (noOfItemsNow <= reorderLevel) {
-							POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
-									+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
-									+ " left in godown. Please order now!");
-						}
-					}
+				int reorderLevel = inventoryItem.getPackageReorderLevel();
+				int replenishLevel = inventoryItem.getPackageReplenishLevel();
+				InventoryTransaction inventoryTransaction = (InventoryTransaction) getBean();
+				if (inventoryTransaction.getQuantity() == null || inventoryTransaction.getQuantity().isNaN()
+						|| inventoryTransaction.getQuantity() <= 0) {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Quantity!!");
+					actionPerformed = false;
+					return false;
+				} else if (inventoryTransaction.getVatPaid() == null || inventoryTransaction.getVatPaid().isNaN()) {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
+					actionPerformed = false;
+					return false;
+				} else if (inventoryTransaction.getUnitPrice() == null || inventoryTransaction.getUnitPrice().isNaN()) {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Price!!");
+					actionPerformed = false;
+					return false;
 				} else {
-					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be removed should be less than "
-							+ formatDouble(recepieUnits2 / inventoryItem.getPackagingUnit().getFactor()));
+					InventoryTransactionDAO.getInstance().saveOrUpdate(inventoryTransaction, session);
+				}
+				InventoryLocationDAO locDAO = InventoryLocationDAO.getInstance();
+				List<InventoryLocation> listLocIn = locDAO.findByInventoryItem((InventoryWarehouse) this.inWareHouse.getSelectedItem());
+				InventoryLocation locationIN = null;
+				if (listLocIn != null && !listLocIn.isEmpty()) {
+					locationIN = listLocIn.get(0);
 				}
 
-				// this.inventoryItem.setTotalPackages(Integer.valueOf(this.inventoryItem.getTotalPackages().intValue()
-				// - inventoryTransaction.getQuantity().intValue()));
-				// this.inventoryItem.setLastUpdateDate(new Date());
-				break;
-			case MOVEMENT:
-				if (locationIN.getId() != locationOUT.getId()) {
-					InventoryWarehouseItemDAO dao3 = InventoryWarehouseItemDAO.getInstance();
-					InventoryWarehouseItem inventoryWarehouseItemIN = null;
-					InventoryWarehouseItem inventoryWarehouseItemOUT = null;
-					if (dao3 != null) {
-						inventoryWarehouseItemIN = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationIN);
-						inventoryWarehouseItemOUT = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
-					}
-					double recepieUnitsIN = inventoryWarehouseItemIN.getTotalRecepieUnits();
-					double recepieUnitsOUT = inventoryWarehouseItemOUT.getTotalRecepieUnits();
-					double unitsToBeMoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor());
-					if (recepieUnitsOUT >= unitsToBeMoved) {
-						inventoryWarehouseItemOUT.setTotalRecepieUnits(recepieUnitsOUT - unitsToBeMoved);
-						inventoryWarehouseItemOUT.setLastUpdateDate(new Date());
-						inventoryWarehouseItemOUT.setUnitPurchasePrice(0.0d);
-
-						inventoryWarehouseItemIN.setTotalRecepieUnits(recepieUnitsIN + unitsToBeMoved);
-						inventoryWarehouseItemIN.setLastUpdateDate(new Date());
-						inventoryWarehouseItemIN.setUnitPurchasePrice(0.0d);
-
-						dao3.saveOrUpdate(inventoryWarehouseItemOUT);
-						dao3.saveOrUpdate(inventoryWarehouseItemIN);
+				List<InventoryLocation> listLocOut = locDAO.findByInventoryItem((InventoryWarehouse) this.outWareHouse.getSelectedItem());
+				InventoryLocation locationOUT = null;
+				if (listLocOut != null && !listLocOut.isEmpty()) {
+					locationOUT = listLocOut.get(0);
+				}
+				InOutEnum inOutEnum = InOutEnum.fromInt(inventoryTransaction.getTransactionType().getInOrOut().intValue());
+				switch (inOutEnum) {
+				case IN:
+					InventoryWarehouseItemDAO dao1 = InventoryWarehouseItemDAO.getInstance();
+					InventoryWarehouseItem inventoryWarehouseItem1 = null;
+					if (dao1 != null) {
+						inventoryWarehouseItem1 = dao1.findByInventoryItemAndInventoryLocation(inventoryItem, locationIN);
+						double recepieUnits1 = inventoryWarehouseItem1.getTotalRecepieUnits();
+						inventoryWarehouseItem1.setTotalRecepieUnits(recepieUnits1
+								+ (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()));
+						inventoryWarehouseItem1.setLastUpdateDate(new Date());
+						inventoryWarehouseItem1.setUnitPurchasePrice(0.0d);
+						dao1.saveOrUpdate(inventoryWarehouseItem1);
 						actionPerformed = true;
-
-						int noOfItemsNow = (int) ((recepieUnitsOUT - unitsToBeMoved) / inventoryItem.getPackagingUnit().getFactor());
-						if (locationOUT.getName().toLowerCase().contains("cafe")) {
-							if (noOfItemsNow <= replenishLevel) {
-								POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
-										+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
-										+ " left in CAFE. Please bring more from Godown now!");
+					}
+					break;
+				case OUT:
+					InventoryWarehouseItemDAO dao2 = InventoryWarehouseItemDAO.getInstance();
+					InventoryWarehouseItem inventoryWarehouseItem2 = null;
+					if (dao2 != null) {
+						inventoryWarehouseItem2 = dao2.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
+						double recepieUnits2 = inventoryWarehouseItem2.getTotalRecepieUnits();
+						double unitsToBeRemoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor());
+						if (recepieUnits2 >= unitsToBeRemoved) {
+							inventoryWarehouseItem2.setTotalRecepieUnits(recepieUnits2 - unitsToBeRemoved);
+							inventoryWarehouseItem2.setLastUpdateDate(new Date());
+							inventoryWarehouseItem2.setUnitPurchasePrice(0.0d);
+							dao2.saveOrUpdate(inventoryWarehouseItem2);
+							actionPerformed = true;
+							int noOfItemsNow = (int) ((recepieUnits2 - unitsToBeRemoved) / inventoryItem.getPackagingUnit().getFactor());
+							if (locationOUT.getName().toLowerCase().contains("cafe")) {
+								if (noOfItemsNow <= replenishLevel) {
+									POSMessageDialog.showError(BackOfficeWindow.getInstance(),
+											"WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName()
+													+ "left in Cafe. Please bring more from Godown!");
+								}
+							} else if (locationOUT.getName().toLowerCase().contains("godown")) {
+								if (noOfItemsNow <= reorderLevel) {
+									POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
+											+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
+											+ " left in godown. Please order now!");
+								}
 							}
-						} else if (locationOUT.getName().toLowerCase().contains("godown")) {
-							if (noOfItemsNow <= reorderLevel) {
-								POSMessageDialog.showError(BackOfficeWindow.getInstance(),
-										"WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName() + "left in godown. Please order now!");
+						} else {
+							POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be removed should be less than "
+									+ formatDouble(recepieUnits2 / inventoryItem.getPackagingUnit().getFactor()));
+						}
+					}
+					break;
+				case MOVEMENT:
+					if (locationIN.getId().intValue() != locationOUT.getId().intValue()) {
+						InventoryWarehouseItemDAO dao3 = InventoryWarehouseItemDAO.getInstance();
+						InventoryWarehouseItem inventoryWarehouseItemIN = null;
+						InventoryWarehouseItem inventoryWarehouseItemOUT = null;
+						if (dao3 != null) {
+							inventoryWarehouseItemIN = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationIN);
+							inventoryWarehouseItemOUT = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
+							double recepieUnitsIN = inventoryWarehouseItemIN.getTotalRecepieUnits();
+							double recepieUnitsOUT = inventoryWarehouseItemOUT.getTotalRecepieUnits();
+							double unitsToBeMoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor());
+							if (recepieUnitsOUT >= unitsToBeMoved) {
+								inventoryWarehouseItemOUT.setTotalRecepieUnits(recepieUnitsOUT - unitsToBeMoved);
+								inventoryWarehouseItemOUT.setLastUpdateDate(new Date());
+								inventoryWarehouseItemOUT.setUnitPurchasePrice(0.0d);
+
+								inventoryWarehouseItemIN.setTotalRecepieUnits(recepieUnitsIN + unitsToBeMoved);
+								inventoryWarehouseItemIN.setLastUpdateDate(new Date());
+								inventoryWarehouseItemIN.setUnitPurchasePrice(0.0d);
+
+								dao3.saveOrUpdate(inventoryWarehouseItemOUT);
+								dao3.saveOrUpdate(inventoryWarehouseItemIN);
+								actionPerformed = true;
+
+								int noOfItemsNow = (int) ((recepieUnitsOUT - unitsToBeMoved) / inventoryItem.getPackagingUnit().getFactor());
+								if (locationOUT.getName().toLowerCase().contains("cafe")) {
+									if (noOfItemsNow <= replenishLevel) {
+										POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
+												+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
+												+ " left in CAFE. Please bring more from Godown now!");
+									}
+								} else if (locationOUT.getName().toLowerCase().contains("godown")) {
+									if (noOfItemsNow <= reorderLevel) {
+										POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
+												+ inventoryItem.getName() + "left in godown. Please order now!");
+									}
+								}
+							} else {
+								POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be moved should be less than "
+										+ formatDouble(recepieUnitsOUT / inventoryItem.getPackagingUnit().getFactor()));
 							}
 						}
 					} else {
-						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be moved should be less than "
-								+ formatDouble(recepieUnitsOUT / inventoryItem.getPackagingUnit().getFactor()));
+						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "In-location and Out-location can't be same!");
 					}
-				} else {
-					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "In-location and Out-location can't be same!");
-				}
-				break;
-			case ADJUSTMENT:
-			case WASTAGE:
-				InventoryWarehouseItemDAO dao3 = InventoryWarehouseItemDAO.getInstance();
-				InventoryWarehouseItem inventoryWarehouseItem3 = null;
-				if (dao3 != null) {
-					inventoryWarehouseItem3 = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
-				}
-				double recepieUnits3 = inventoryWarehouseItem3.getTotalRecepieUnits();
-				double unitsToBeAdjusted = inventoryTransaction.getQuantity();
-				if (recepieUnits3 >= unitsToBeAdjusted) {
-					inventoryWarehouseItem3.setTotalRecepieUnits(recepieUnits3 - unitsToBeAdjusted);
-					inventoryWarehouseItem3.setLastUpdateDate(new Date());
-					inventoryWarehouseItem3.setUnitPurchasePrice(0.0d);
-					dao3.saveOrUpdate(inventoryWarehouseItem3);
-					actionPerformed = true;
-					int noOfItemsNow = (int) ((recepieUnits3 - unitsToBeAdjusted) / inventoryItem.getPackagingUnit().getFactor());
-					if (locationOUT.getName().toLowerCase().contains("cafe")) {
-						if (noOfItemsNow <= replenishLevel) {
-							POSMessageDialog
-									.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName()
-											+ "left in Cafe. Please bring more from Godown!");
-						}
-					} else if (locationOUT.getName().toLowerCase().contains("godown")) {
-						if (noOfItemsNow <= reorderLevel) {
-							POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
-									+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
-									+ " left in godown. Please order now!");
+					break;
+				case ADJUSTMENT:
+				case WASTAGE:
+					InventoryWarehouseItemDAO dao3 = InventoryWarehouseItemDAO.getInstance();
+					InventoryWarehouseItem inventoryWarehouseItem3 = null;
+					if (dao3 != null) {
+						inventoryWarehouseItem3 = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
+						double recepieUnits3 = inventoryWarehouseItem3.getTotalRecepieUnits();
+						double unitsToBeAdjusted = inventoryTransaction.getQuantity();
+						if (recepieUnits3 >= unitsToBeAdjusted) {
+							inventoryWarehouseItem3.setTotalRecepieUnits(recepieUnits3 - unitsToBeAdjusted);
+							inventoryWarehouseItem3.setLastUpdateDate(new Date());
+							inventoryWarehouseItem3.setUnitPurchasePrice(0.0d);
+							dao3.saveOrUpdate(inventoryWarehouseItem3);
+							actionPerformed = true;
+							int noOfItemsNow = (int) ((recepieUnits3 - unitsToBeAdjusted) / inventoryItem.getPackagingUnit().getFactor());
+							if (locationOUT.getName().toLowerCase().contains("cafe")) {
+								if (noOfItemsNow <= replenishLevel) {
+									POSMessageDialog.showError(BackOfficeWindow.getInstance(),
+											"WARNING!! Just " + noOfItemsNow + " " + inventoryItem.getName()
+													+ "left in Cafe. Please bring more from Godown!");
+								}
+							} else if (locationOUT.getName().toLowerCase().contains("godown")) {
+								if (noOfItemsNow <= reorderLevel) {
+									POSMessageDialog.showError(BackOfficeWindow.getInstance(), "WARNING!! Just " + noOfItemsNow + " "
+											+ inventoryItem.getPackagingUnit().getName() + " " + inventoryItem.getName()
+											+ " left in godown. Please order now!");
+								}
+							}
+						} else {
+							POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be removed should be less than "
+									+ formatDouble(recepieUnits3 / inventoryItem.getPackagingUnit().getFactor()));
 						}
 					}
-				} else {
-					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No. of Items to be removed should be less than "
-							+ formatDouble(recepieUnits3 / inventoryItem.getPackagingUnit().getFactor()));
+					break;
 				}
-				break;
-			}
 
-			PurchaseOrder purchaseOrder = inventoryTransaction.getReferenceNo();
-			PurchaseOrderDAO.getInstance().saveOrUpdate(purchaseOrder, session);
-			// InventoryItemDAO.getInstance().saveOrUpdate(this.inventoryItem);
-			if (actionPerformed) {
-				tx.commit();
-				if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
-					updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()),
-							inventoryTransaction.getUnitPrice() * inventoryTransaction.getQuantity());
+				PurchaseOrder purchaseOrder = inventoryTransaction.getReferenceNo();
+				PurchaseOrderDAO.getInstance().saveOrUpdate(purchaseOrder, session);
+				if (actionPerformed) {
+					tx.commit();
+					if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
+						updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit()
+								.getFactor()), inventoryTransaction.getUnitPrice() * inventoryTransaction.getQuantity());
+					}
+				} else {
+					tx.rollback();
 				}
-				// POSMessageDialog.showMessage(BackOfficeWindow.getInstance(),
-				// "Inventory Transaction done successfully");
-			} else {
-				tx.rollback();
-			}
-		} catch (Exception e) {
-			if (tx != null) {
-				tx.rollback();
-			}
-			if (session != null) {
+			} catch (RuntimeException e) {
+				throw e;
+			} catch (Exception e) {
+				if (tx != null) {
+					tx.rollback();
+				}
 				session.close();
+				POSMessageDialog.showError(e.getMessage(), e);
+				return false;
 			}
-			POSMessageDialog.showError(e.getMessage(), e);
-			return false;
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	protected void updateView() {
@@ -451,7 +430,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.cbVendor.setSelectedItem(transaction.getVendor());
 		}
 		if (transaction.getRemark() != null) {
-			this.taNote.setText(transaction.getRemark().toString());
+			this.taNote.setText(transaction.getRemark());
 		}
 		if (transaction.getTransactionDate() != null) {
 			this.datePicker.setDate(transaction.getTransactionDate());
@@ -589,11 +568,3 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.transLabel.setEnabled(false);
 	}
 }
-
-/*
- * Location:
- * C:\Users\SOMYA\Downloads\floreantpos_14452\floreantpos-1.4-build556\
- * plugins\orostock-0.1.jar Qualified Name:
- * com.orostock.inventory.ui.InventoryTransactionEntryForm JD-Core Version:
- * 0.6.0
- */

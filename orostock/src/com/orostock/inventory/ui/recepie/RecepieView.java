@@ -49,8 +49,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 					return;
 				}
 
-				RecepieView.RecepieItemTableModel model = (RecepieView.RecepieItemTableModel) RecepieView.this.recepieItemTable
-						.getModel();
+				RecepieView.RecepieItemTableModel model = (RecepieView.RecepieItemTableModel) RecepieView.this.recepieItemTable.getModel();
 				model.deleteItem(selectedRow);
 				recepieItemTable.invalidate();
 			}
@@ -137,7 +136,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		this.inited = true;
 	}
 
-	class RecepieItemTableModel extends ListTableModel<RecepieItem> {
+	public static class RecepieItemTableModel extends ListTableModel<RecepieItem> {
 		/**
 		 * 
 		 */

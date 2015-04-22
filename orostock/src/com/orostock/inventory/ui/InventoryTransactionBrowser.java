@@ -32,7 +32,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 	}
 
 	public void loadData() {
-		List<InventoryTransaction> expense = InventoryTransactionDAO.getInstance().findAll();
+		List<InventoryTransaction> expense = InventoryTransactionDAO.getInstance().findByCurrentMonth();
 		InventoryTransactionTableModel tableModel = (InventoryTransactionTableModel) this.browserTable.getModel();
 		tableModel.setRows(expense);
 	}

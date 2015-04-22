@@ -38,7 +38,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 	}
 
 	public void loadData() {
-		List<ExpenseTransaction> expense = ExpenseTransactionDAO.getInstance().findAll();
+		List<ExpenseTransaction> expense = ExpenseTransactionDAO.getInstance().findByCurrentMonth();
 		ExpenseTransactionTableModel tableModel = (ExpenseTransactionTableModel) this.browserTable.getModel();
 		tableModel.setRows(expense);
 	}

@@ -168,42 +168,44 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 
 	public boolean save() {
 		Session session = ExpenseTransactionDAO.getInstance().createNewSession();
-		Transaction tx = session.beginTransaction();
-		boolean actionPerformed = false;
-		try {
-			if (updateModel()) {
-				ExpenseTransaction expenseTransaction = (ExpenseTransaction) getBean();
-				if (expenseTransaction.getAmount() == null || expenseTransaction.getAmount().isNaN()) {
-					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Amount!!");
-					actionPerformed = false;
-				} else if (expenseTransaction.getVatPaid() == null || expenseTransaction.getVatPaid().isNaN()) {
-					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
-					actionPerformed = false;
-				} else if (expenseTransaction.getVendor() == null) {
-					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please select a valid Vendor!!");
-					actionPerformed = false;
-				} else {
-					ExpenseTransactionDAO dao = ExpenseTransactionDAO.getInstance();
-					dao.saveOrUpdate(expenseTransaction);
-					actionPerformed = true;
+		if (session != null) {
+			Transaction tx = session.beginTransaction();
+			boolean actionPerformed = false;
+			try {
+				if (updateModel()) {
+					ExpenseTransaction expenseTransaction = (ExpenseTransaction) getBean();
+					if (expenseTransaction.getAmount() == null || expenseTransaction.getAmount().isNaN()) {
+						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Amount!!");
+						actionPerformed = false;
+					} else if (expenseTransaction.getVatPaid() == null || expenseTransaction.getVatPaid().isNaN()) {
+						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
+						actionPerformed = false;
+					} else if (expenseTransaction.getVendor() == null) {
+						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please select a valid Vendor!!");
+						actionPerformed = false;
+					} else {
+						ExpenseTransactionDAO dao = ExpenseTransactionDAO.getInstance();
+						dao.saveOrUpdate(expenseTransaction);
+						actionPerformed = true;
+					}
 				}
-			}
-			if (actionPerformed) {
-				tx.commit();
-				POSMessageDialog.showMessage(BackOfficeWindow.getInstance(), "Expense Transaction done successfully");
-			} else {
-				tx.rollback();
+				if (actionPerformed) {
+					tx.commit();
+					POSMessageDialog.showMessage(BackOfficeWindow.getInstance(), "Expense Transaction done successfully");
+				} else {
+					tx.rollback();
+					return false;
+				}
+			} catch (RuntimeException e) {
+				POSMessageDialog.showError(e.getMessage(), e);
+			} catch (Exception e) {
+				if (tx != null) {
+					tx.rollback();
+				}
+				session.close();
+				POSMessageDialog.showError(e.getMessage(), e);
 				return false;
 			}
-		} catch (Exception e) {
-			if (tx != null) {
-				tx.rollback();
-			}
-			if (session != null) {
-				session.close();
-			}
-			POSMessageDialog.showError(e.getMessage(), e);
-			return false;
 		}
 		return true;
 	}
@@ -225,7 +227,7 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 			this.tfVAT.setText(expenseTransaction.getVatPaid().toString());
 		}
 		if (expenseTransaction.getRemark() != null) {
-			this.taNote.setText(expenseTransaction.getRemark().toString());
+			this.taNote.setText(expenseTransaction.getRemark());
 		}
 		if (expenseTransaction.getTransactionType() != null) {
 			this.cbTransactionType.setSelectedItem(expenseTransaction.getTransactionType());

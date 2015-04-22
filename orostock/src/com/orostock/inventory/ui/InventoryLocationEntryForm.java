@@ -30,6 +30,10 @@ import com.floreantpos.ui.dialog.POSMessageDialog;
 import com.floreantpos.util.POSUtil;
 
 public class InventoryLocationEntryForm extends BeanEditor<InventoryLocation> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7721561583730518011L;
 	private JCheckBox chkVisible;
 	private POSTextField tfName;
 	private JLabel lblSortOrder;
