@@ -41,6 +41,8 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		List<ExpenseTransaction> expense = ExpenseTransactionDAO.getInstance().findByCurrentMonth();
 		ExpenseTransactionTableModel tableModel = (ExpenseTransactionTableModel) this.browserTable.getModel();
 		tableModel.setRows(expense);
+		tableModel.setPageSize(25);
+
 	}
 
 	protected JButton getAdditionalButton() {

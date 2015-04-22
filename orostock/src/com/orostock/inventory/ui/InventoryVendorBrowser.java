@@ -37,6 +37,8 @@ public class InventoryVendorBrowser extends ModelBrowser<InventoryVendor> {
 		List<InventoryVendor> inventoryVendors = InventoryVendorDAO.getInstance().findAll();
 		InventoryVendorTableModel tableModel = (InventoryVendorTableModel) this.browserTable.getModel();
 		tableModel.setRows(inventoryVendors);
+		tableModel.setPageSize(25);
+
 	}
 
 	public void refreshTable() {

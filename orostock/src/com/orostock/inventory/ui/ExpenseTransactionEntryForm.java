@@ -118,7 +118,6 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		add(new JLabel("Note"));
 		this.taNote = new JTextArea();
 		add(new JScrollPane(this.taNote), "grow, h 100px, wrap");
-
 	}
 
 	public void setInventoryVendor(InventoryVendor bean) {
@@ -157,7 +156,6 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		this.cbTransactionType.setEnabled(false);
 		this.datePicker.setEnabled(false);
 		this.taNote.setEnabled(true);
-		this.creditCheck.setEnabled(false);
 		this.vendorLabel.setEnabled(false);
 		this.transTypeLabel.setEnabled(false);
 		this.amountLabel.setEnabled(false);

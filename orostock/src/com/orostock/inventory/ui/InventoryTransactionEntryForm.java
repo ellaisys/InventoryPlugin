@@ -560,7 +560,6 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.itemCountLabel.setEnabled(false);
 		this.datePicker.setEnabled(false);
 		this.taNote.setEnabled(true);
-		this.creditCheck.setEnabled(false);
 		this.tfUnit.setEnabled(false);
 		this.dateLabel.setEnabled(false);
 		this.vatLabel.setEnabled(false);

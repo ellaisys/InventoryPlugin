@@ -43,10 +43,12 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		List<InventoryItem> inventoryItems = InventoryItemDAO.getInstance().findAll();
 		InventoryItemTableModel tableModel = (InventoryItemTableModel) this.browserTable.getModel();
 		tableModel.setRows(inventoryItems);
+		tableModel.setPageSize(25);
 	}
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
 	}
 
 	protected JButton getAdditionalButton() {

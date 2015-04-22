@@ -32,6 +32,7 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 		List<PackagingUnit> pUnits = PackagingUnitDAO.getInstance().findAll();
 		PackagingUnitTableModel tableModel = (PackagingUnitTableModel) this.browserTable.getModel();
 		tableModel.setRows(pUnits);
+		tableModel.setPageSize(25);
 	}
 
 	public void refreshTable() {

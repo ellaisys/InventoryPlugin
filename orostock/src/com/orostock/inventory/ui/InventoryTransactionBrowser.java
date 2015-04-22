@@ -35,6 +35,8 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		List<InventoryTransaction> expense = InventoryTransactionDAO.getInstance().findByCurrentMonth();
 		InventoryTransactionTableModel tableModel = (InventoryTransactionTableModel) this.browserTable.getModel();
 		tableModel.setRows(expense);
+		tableModel.setPageSize(25);
+
 	}
 
 	public void refreshTable() {
