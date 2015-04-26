@@ -24,7 +24,7 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 		this.browserPanel.add(buttonPanel, "South");
 		init(new PackagingUnitTableModel());
 		hideDeleteBtn();
-		pf.setFieldsEnableEdit();
+		pf.setFieldsEnable(false);
 		refreshTable();
 	}
 
@@ -64,7 +64,7 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 			case 0:
 				return row.getName();
 			case 1:
-				return row.getShortName();
+				return row.getRecepieUnitName();
 			case 2:
 				return row.getFactor();
 			}

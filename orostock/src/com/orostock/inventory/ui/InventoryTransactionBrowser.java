@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.swing.JPanel;
+import javax.swing.event.ListSelectionEvent;
 
 import com.floreantpos.bo.ui.Command;
 import com.floreantpos.bo.ui.ModelBrowser;
@@ -18,16 +19,16 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 	 * 
 	 */
 	private static final long serialVersionUID = -4133361713025286200L;
-	private static InventoryTransactionEntryForm it = new InventoryTransactionEntryForm();
+	private static InventoryTransactionEntryForm itForm = new InventoryTransactionEntryForm();
 
 	public InventoryTransactionBrowser() {
-		super(it);
+		super(itForm);
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		init(new InventoryTransactionTableModel());
 		hideDeleteBtn();
 		hideNewBtn();
-		it.setFieldsEnableEdit();
+		itForm.setFieldsEnable(false);
 		refreshTable();
 	}
 
@@ -36,16 +37,23 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		InventoryTransactionTableModel tableModel = (InventoryTransactionTableModel) this.browserTable.getModel();
 		tableModel.setRows(expense);
 		tableModel.setPageSize(25);
-
 	}
 
 	public void refreshTable() {
 		loadData();
 	}
 
+	public void valueChanged(ListSelectionEvent e) {
+		super.valueChanged(e);
+		InventoryTransaction bean = (InventoryTransaction) this.beanEditor.getBean();
+		if ((bean != null) && (bean.getInventoryItem() != null)) {
+			itForm.setInventoryItem(bean.getInventoryItem());
+		}
+	}
+
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
 		if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
-			it.setFieldsEnableEdit();
+			itForm.setFieldsEnableAfterEdit();
 		}
 	}
 
@@ -66,7 +74,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		public Object getValueAt(int rowIndex, int columnIndex) {
 
 			InventoryTransaction row = (InventoryTransaction) getRowData(rowIndex);
-			InOutEnum inOutEnum = InOutEnum.fromInt(row.getTransactionType().getInOrOut().intValue());
+			InOutEnum inOutEnum = InOutEnum.fromInt(row.getInventoryTransactionType().getInOrOut().intValue());
 			switch (columnIndex) {
 			case 0:
 				if (row.getTransactionDate() != null) {
@@ -96,15 +104,15 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 					return "";
 				}
 			case 4:
-				return row.getUnitPrice();
+				return row.getTotalPrice();
 			case 5:
 				return row.getVatPaid();
 			case 6:
-				if (row.getVendor() != null) {
+				if (row.getInventoryVendor() != null) {
 					if (inOutEnum == InOutEnum.IN) {
-						return row.getVendor().getName();
+						return row.getInventoryVendor().getName();
 					} else if (inOutEnum == InOutEnum.OUT) {
-						return row.getVendor().getName();
+						return row.getInventoryVendor().getName();
 					} else if (inOutEnum == InOutEnum.MOVEMENT) {
 						return "";
 					} else if (inOutEnum == InOutEnum.ADJUSTMENT) {
@@ -116,18 +124,18 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 					}
 				}
 			case 7:
-				if (row.getCreditCheck()) {
+				if (row.isCreditCheck()) {
 					return "T";
 				} else {
 					return "F";
 				}
 			case 8:
 				if (inOutEnum == InOutEnum.IN) {
-					return row.getToWarehouse().getName();
+					return row.getInventoryWarehouseByToWarehouseId().getName();
 				} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE) {
-					return row.getFromWarehouse().getName();
+					return row.getInventoryWarehouseByFromWarehouseId().getName();
 				} else if (inOutEnum == InOutEnum.MOVEMENT) {
-					return row.getFromWarehouse().getName() + " -> " + row.getToWarehouse().getName();
+					return row.getInventoryWarehouseByFromWarehouseId().getName() + " -> " + row.getInventoryWarehouseByToWarehouseId().getName();
 				} else {
 					return "";
 				}

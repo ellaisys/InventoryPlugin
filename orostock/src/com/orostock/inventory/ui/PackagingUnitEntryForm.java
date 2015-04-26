@@ -84,7 +84,7 @@ public class PackagingUnitEntryForm extends BeanEditor<PackagingUnit> {
 			return;
 		}
 		this.tfPName.setText(model.getName());
-		this.tfRName.setText(model.getShortName());
+		this.tfRName.setText(model.getRecepieUnitName());
 		this.tfFactor.setText(model.getFactor().toString());
 		this.tfFactor.setEnabled(false);
 	}
@@ -103,7 +103,7 @@ public class PackagingUnitEntryForm extends BeanEditor<PackagingUnit> {
 			POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Recipe Unit!!");
 		}
 		model.setName(pNameString);
-		model.setShortName(rNameString);
+		model.setRecepieUnitName(rNameString);
 		model.setFactor(Double.valueOf(this.tfFactor.getDouble()));
 		return true;
 	}

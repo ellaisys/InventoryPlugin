@@ -33,7 +33,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		init(new ExpenseTransactionTableModel());
 		hideDeleteBtn();
 		hideNewBtn();
-		et.setFieldsEnableEdit();
+		et.setFieldsEnable(false);
 		refreshTable();
 	}
 
@@ -42,7 +42,6 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		ExpenseTransactionTableModel tableModel = (ExpenseTransactionTableModel) this.browserTable.getModel();
 		tableModel.setRows(expense);
 		tableModel.setPageSize(25);
-
 	}
 
 	protected JButton getAdditionalButton() {
@@ -101,8 +100,8 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 			try {
 				switch (columnIndex) {
 				case 0:
-					if (row.getTransactionType() != null) {
-						return row.getTransactionType().getName();
+					if (row.getExpenseTransactionType() != null) {
+						return row.getExpenseTransactionType().getName();
 					} else {
 						return "";
 					}
@@ -115,8 +114,8 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 						return "";
 					}
 				case 2:
-					if (row.getVendor().getName() != null) {
-						return row.getVendor().getName();
+					if (row.getInventoryVendor().getName() != null) {
+						return row.getInventoryVendor().getName();
 					} else {
 						return "";
 					}
@@ -126,7 +125,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 				case 4:
 					return row.getVatPaid();
 				case 5:
-					if (row.getCreditCheck()) {
+					if (row.isCreditCheck()) {
 						return "T";
 					} else {
 						return "F";

@@ -155,17 +155,10 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 			case 1:
 				return item.getPercentage();
 			case 2:
-				return item.getInventoryItem().getPackagingUnit().getShortName();
+				return item.getInventoryItem().getPackagingUnit().getRecepieUnitName();
 			}
 
 			return null;
 		}
 	}
 }
-
-/*
- * Location:
- * C:\Users\SOMYA\Downloads\floreantpos_14452\floreantpos-1.4-build556\
- * plugins\orostock-0.1.jar Qualified Name:
- * com.orostock.inventory.ui.recepie.RecepieView JD-Core Version: 0.6.0
- */

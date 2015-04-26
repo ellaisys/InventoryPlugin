@@ -46,11 +46,9 @@ public class InventoryItemSelector extends BeanEditorDialog {
 			return;
 
 		List<InventoryItem> list = InventoryItemDAO.getInstance().findAll();
-		this.comboBox.setModel(new DefaultComboBoxModel(list
-				.toArray(new InventoryItem[0])));
+		this.comboBox.setModel(new DefaultComboBoxModel(list.toArray(new InventoryItem[0])));
 		if (list != null && list.size() > 0) {
-			quantityLabel
-					.setText("Quantity in " +list.get(0).getPackagingUnit().getShortName());
+			quantityLabel.setText("Quantity in " + list.get(0).getPackagingUnit().getRecepieUnitName());
 		}
 		this.dataLoaded = true;
 	}
@@ -63,8 +61,7 @@ public class InventoryItemSelector extends BeanEditorDialog {
 		setBeanEditor(editor);
 	}
 
-	class InventoryItemView extends BeanEditor<InventoryItem> implements
-			ActionListener {
+	class InventoryItemView extends BeanEditor<InventoryItem> implements ActionListener {
 		public InventoryItemView() {
 			setLayout(new BorderLayout());
 
@@ -79,10 +76,8 @@ public class InventoryItemSelector extends BeanEditorDialog {
 		}
 
 		public boolean save() {
-			InventoryItemSelector.this.selectedItem = ((InventoryItem) InventoryItemSelector.this.comboBox
-					.getSelectedItem());
-			InventoryItemSelector.this.quantity = (float) InventoryItemSelector.this.tfQty
-					.getDouble();
+			InventoryItemSelector.this.selectedItem = ((InventoryItem) InventoryItemSelector.this.comboBox.getSelectedItem());
+			InventoryItemSelector.this.quantity = (float) InventoryItemSelector.this.tfQty.getDouble();
 
 			return true;
 		}
@@ -99,9 +94,8 @@ public class InventoryItemSelector extends BeanEditorDialog {
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			InventoryItem item = (InventoryItem) ((AutoCompletionComboBox) arg0
-					.getSource()).getSelectedItem();
-			quantityLabel.setText("Quantity in " + item.getPackagingUnit().getShortName());
+			InventoryItem item = (InventoryItem) ((AutoCompletionComboBox) arg0.getSource()).getSelectedItem();
+			quantityLabel.setText("Quantity in " + item.getPackagingUnit().getRecepieUnitName());
 		}
 	}
 }

@@ -114,9 +114,9 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			case 0:
 				return row.getName();
 			case 1:
-				return this.f.format(cafeRcpQty) + " " + row.getPackagingUnit().getShortName();
+				return this.f.format(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName();
 			case 2:
-				return this.f.format(godownRcpQty) + " " + row.getPackagingUnit().getShortName();
+				return this.f.format(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName();
 			}
 			return row.getName();
 		}

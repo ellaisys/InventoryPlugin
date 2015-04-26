@@ -178,7 +178,7 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 					} else if (expenseTransaction.getVatPaid() == null || expenseTransaction.getVatPaid().isNaN()) {
 						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
 						actionPerformed = false;
-					} else if (expenseTransaction.getVendor() == null) {
+					} else if (expenseTransaction.getInventoryVendor() == null) {
 						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please select a valid Vendor!!");
 						actionPerformed = false;
 					} else {
@@ -213,10 +213,10 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		if (expenseTransaction == null) {
 			return;
 		}
-		if (expenseTransaction.getVendor() != null) {
+		if (expenseTransaction.getInventoryVendor() != null) {
 			// this.tfVendor.setText(expenseTransaction.getVendor().getName());
-			this.cbVendor.setSelectedItem(expenseTransaction.getVendor());
-			setInventoryVendor(expenseTransaction.getVendor());
+			this.cbVendor.setSelectedItem(expenseTransaction.getInventoryVendor());
+			setInventoryVendor(expenseTransaction.getInventoryVendor());
 		}
 		if (expenseTransaction.getAmount() != null && !expenseTransaction.getAmount().isNaN()) {
 			this.tfAmount.setText(expenseTransaction.getAmount().toString());
@@ -227,14 +227,14 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		if (expenseTransaction.getRemark() != null) {
 			this.taNote.setText(expenseTransaction.getRemark());
 		}
-		if (expenseTransaction.getTransactionType() != null) {
-			this.cbTransactionType.setSelectedItem(expenseTransaction.getTransactionType());
+		if (expenseTransaction.getExpenseTransactionType() != null) {
+			this.cbTransactionType.setSelectedItem(expenseTransaction.getExpenseTransactionType());
 		}
 		if (expenseTransaction.getTransactionDate() != null) {
 			this.datePicker.setDate(expenseTransaction.getTransactionDate());
 		}
-		if (expenseTransaction.getCreditCheck() != null) {
-			this.creditCheck.setSelected(expenseTransaction.getCreditCheck());
+		if (expenseTransaction.isCreditCheck()) {
+			this.creditCheck.setSelected(expenseTransaction.isCreditCheck());
 		}
 
 	}
@@ -245,11 +245,11 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 			model = new ExpenseTransaction();
 			setBean(model);
 		}
-		if (model.getVendor() == null) {
+		if (model.getInventoryVendor() == null) {
 			ExpenseTransactionType transType = (ExpenseTransactionType) this.cbTransactionType.getSelectedItem();
 			InventoryVendor iVendor = (InventoryVendor) this.cbVendor.getSelectedItem();
-			model.setVendor(iVendor);
-			model.setTransactionType(transType);
+			model.setInventoryVendor(iVendor);
+			model.setExpenseTransactionType(transType);
 			model.setAmount(Double.valueOf(this.tfAmount.getDouble()));
 			model.setVatPaid(Double.valueOf(this.tfVAT.getDouble()));
 			model.setCreditCheck(creditCheck.isSelected());
