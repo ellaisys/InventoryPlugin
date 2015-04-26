@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
@@ -82,9 +83,11 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	private JLabel distLabel;
 	private JLabel packSizeLabel;
 	private JLabel optionLabel;
+	private HashSet<ItemCompVendPack> tbd;
 
 	public InventoryItemEntryForm() {
 		createUI();
+		tbd = new HashSet<ItemCompVendPack>();
 		populateComboBoxes();
 		setFieldsEnable(false);
 	}
@@ -200,6 +203,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 								combo.setSelectedItem(ps);
 							}
 						} catch (Exception exp) {
+							exp.printStackTrace();
 							POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please enter a valid Pack Size!");
 						}
 					}
@@ -243,6 +247,9 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 			}
 		});
 		this.table = new JTable(new InventoryItemDetailModel());
+		InventoryItemDetailModel tableModel = (InventoryItemDetailModel) this.table.getModel();
+		tableModel.setPageSize(100);
+
 		JScrollPane jsp = new JScrollPane(this.table);
 		jsp.setPreferredSize(new Dimension(500, 200));
 		this.mainPanel.add(jsp, "cell 1 30 3 3");
@@ -252,6 +259,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	protected void deleteSelectedTuple() {
 		if (this.table.getSelectedRow() >= 0) {
 			InventoryItemDetailModel tableModel = (InventoryItemDetailModel) this.table.getModel();
+			tbd.add(tableModel.getRowData(this.table.getSelectedRow()));
 			tableModel.deleteItem(this.table.getSelectedRow());
 		}
 	}
@@ -288,7 +296,23 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		}
 		if (allSet) {
 			InventoryItemDetailModel tableModel = (InventoryItemDetailModel) this.table.getModel();
-			tableModel.addItem(icvp);
+			boolean flag = false;
+			if (tableModel.getRows() != null) {
+				for (ItemCompVendPack icvp1 : tableModel.getRows()) {
+					if (icvp1.equals(icvp)) {
+						flag = true;
+						break;
+					}
+				}
+			}
+			if (!flag) {
+				if (tbd.contains(icvp)) {
+					tbd.remove(icvp);
+				}
+				tableModel.addItem(icvp);
+			} else {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Duplicate entry!");
+			}
 		}
 	}
 
@@ -381,6 +405,12 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 								icvpDao.saveOrUpdate(ic);
 							}
 						}
+						for (ItemCompVendPack ic : tbd) {
+							if (ic.getId() != null) {
+								icvpDao.refresh(ic);
+								icvpDao.delete(ic);
+							}
+						}
 					}
 				}
 				if (actionPerformed) {
@@ -427,7 +457,6 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 			List<ItemCompVendPack> tuple = ItemCompVendPackDAO.getInstance().findAllByInventoryItem(inventoryItem);
 			tableModel.setRows(tuple);
 		}
-		tableModel.setPageSize(100);
 	}
 
 	static class InventoryItemDetailModel extends ListTableModel<ItemCompVendPack> {
