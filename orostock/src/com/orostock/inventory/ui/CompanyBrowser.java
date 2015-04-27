@@ -60,7 +60,7 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 		private static final long serialVersionUID = 8008682351957964208L;
 
 		public CompanyTableModel() {
-			super(new String[] { "NAME", "PHONE", "EMAIL", "ADDRESS", "PERSON1", "PERSON2", "PERSON3" });
+			super(new String[] { "NAME", "PHONE", "ADDRESS" });
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -71,27 +71,7 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 			case 1:
 				return row.getPhone();
 			case 2:
-				return row.getEmail();
-			case 3:
 				return row.getAddress();
-			case 4:
-				if (row.getPersonByP1Id() != null) {
-					return row.getPersonByP1Id().getName();
-				} else {
-					return null;
-				}
-			case 5:
-				if (row.getPersonByP2Id() != null) {
-					return row.getPersonByP2Id().getName();
-				} else {
-					return null;
-				}
-			case 6:
-				if (row.getPersonByP3Id() != null) {
-					return row.getPersonByP3Id().getName();
-				} else {
-					return null;
-				}
 			}
 			return row.getName();
 		}

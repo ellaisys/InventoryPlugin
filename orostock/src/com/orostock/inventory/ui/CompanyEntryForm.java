@@ -1,24 +1,36 @@
 package com.orostock.inventory.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.TextField;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.HashSet;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.jdesktop.swingx.JXComboBox;
 
-import com.floreantpos.PosException;
+import com.floreantpos.bo.ui.BackOfficeWindow;
+import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.Company;
+import com.floreantpos.model.CompanyPerson;
 import com.floreantpos.model.Person;
 import com.floreantpos.model.dao.CompanyDAO;
+import com.floreantpos.model.dao.CompanyPersonDAO;
 import com.floreantpos.model.dao.PersonDAO;
 import com.floreantpos.swing.POSTextField;
 import com.floreantpos.ui.BeanEditor;
@@ -33,26 +45,33 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 	private TextField tfPhone;
 	private TextField tfEmail;
 	private JTextArea taAddress;
-	private JLabel p1Label;
-	private JLabel p2Label;
-	private JLabel p3Label;
-	private JXComboBox cbP1 = new JXComboBox();
-	private JXComboBox cbP2 = new JXComboBox();
-	private JXComboBox cbP3 = new JXComboBox();
-
+	private JLabel nameLabel;
+	private JLabel phoneLabel;
+	private JLabel emailLabel;
+	private JLabel addLabel;
+	private JXComboBox cbPerson = new JXComboBox();
+	protected JTable table;
+	private JLabel persLabel;
+	private HashSet<CompanyPerson> tbd;
 	JPanel mainPanel = new JPanel();
+	private final JButton btnAdd = new JButton("Add");
+	private final JButton btnDel = new JButton("Delete");
 
 	public CompanyEntryForm() {
-		setLayout(new BorderLayout());
 		createUI();
+		tbd = new HashSet<CompanyPerson>();
 		populateComboBoxes();
+		setFieldsEnable(false);
 	}
 
 	private void populateComboBoxes() {
 		List<Person> pList = PersonDAO.getInstance().findAll();
-		this.cbP1.setModel(new DefaultComboBoxModel(pList.toArray(new Person[0])));
-		this.cbP2.setModel(new DefaultComboBoxModel(pList.toArray(new Person[0])));
-		this.cbP3.setModel(new DefaultComboBoxModel(pList.toArray(new Person[0])));
+		this.cbPerson.setModel(new DefaultComboBoxModel(pList.toArray(new Person[0])));
+	}
+
+	public void createNew() {
+		Company comp = new Company();
+		setBean(comp);
 	}
 
 	private void createUI() {
@@ -61,36 +80,105 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 
 		this.mainPanel.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
 
-		mainPanel.add(new JLabel("Name"));
+		mainPanel.add(nameLabel = new JLabel("Name"));
 		this.tfName = new POSTextField();
 		mainPanel.add(this.tfName, "grow, wrap");
 
-		mainPanel.add(new JLabel("Phone"));
+		mainPanel.add(phoneLabel = new JLabel("Phone"));
 		this.tfPhone = new TextField(20);
 		mainPanel.add(this.tfPhone, "grow, wrap");
 
-		mainPanel.add(new JLabel("Email"));
+		mainPanel.add(emailLabel = new JLabel("Email"));
 		this.tfEmail = new TextField(40);
 		mainPanel.add(this.tfEmail, "grow, wrap");
 
-		mainPanel.add(new JLabel("Address"));
+		mainPanel.add(addLabel = new JLabel("Address"));
 		this.taAddress = new JTextArea();
 		mainPanel.add(new JScrollPane(this.taAddress), "grow, h 100px, wrap");
 
-		this.mainPanel.add(p1Label = new JLabel("Person 1"), "cell 0 13,alignx trailing");
-		this.mainPanel.add(this.cbP1, "cell 1 13");
+		JPanel hPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
+		JPanel hPanel1 = new JPanel(new FlowLayout(FlowLayout.LEADING));
 
-		this.mainPanel.add(p2Label = new JLabel("Person 2"), "cell 0 13,alignx trailing");
-		this.mainPanel.add(this.cbP2, "cell 1 13");
+		this.cbPerson.setPreferredSize(new Dimension(110, 20));
 
-		this.mainPanel.add(p3Label = new JLabel("Person 3"), "cell 0 13,alignx trailing");
-		this.mainPanel.add(this.cbP3, "cell 1 13");
+		persLabel = new JLabel("Person");
+		persLabel.setPreferredSize(new Dimension(120, 20));
+
+		// hPanel.add(optionLabel = new JLabel("People :  "),
+		// "cell 0 3,alignx trailing");
+		hPanel.add(persLabel, "cell 1 3,alignx trailing");
+
+		JLabel j4 = new JLabel("Item Options");
+		hPanel1.add(j4, "cell 0 3,alignx trailing");
+		j4.setForeground(getBackground());
+		hPanel1.add(this.cbPerson, "cell 1 3,alignx");
+		this.btnAdd.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				CompanyEntryForm.this.addNewPerson();
+			}
+		});
+		hPanel1.add(this.btnAdd, "cell 4 3,alignx");
+		hPanel.setPreferredSize(new Dimension(300, 40));
+		hPanel1.setPreferredSize(new Dimension(300, 40));
+
+		this.mainPanel.add(hPanel, "cell 0 15 3 3");
+		this.mainPanel.add(hPanel1, "cell 0 18 3 3");
+
+		this.btnDel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				CompanyEntryForm.this.deleteSelectedPerson();
+			}
+		});
+		this.table = new JTable(new CompanyDetailModel());
+		CompanyDetailModel tableModel = (CompanyDetailModel) this.table.getModel();
+		tableModel.setPageSize(70);
+
+		JScrollPane jsp = new JScrollPane(this.table);
+		jsp.setPreferredSize(new Dimension(500, 200));
+		this.mainPanel.add(jsp, "cell 1 30 3 3");
+		this.mainPanel.add(btnDel, "cell 1 35 2 1");
 
 		setFieldsEnable(false);
 	}
 
-	public void createNew() {
-		setBean(new Company());
+	protected void deleteSelectedPerson() {
+		if (this.table.getSelectedRow() >= 0) {
+			CompanyDetailModel tableModel = (CompanyDetailModel) this.table.getModel();
+			tbd.add(tableModel.getRowData(this.table.getSelectedRow()));
+			tableModel.deleteItem(this.table.getSelectedRow());
+		}
+	}
+
+	protected void addNewPerson() {
+		CompanyPerson cp = new CompanyPerson();
+		cp.setCompany(getBean());
+		boolean allSet = true;
+		if (this.cbPerson.getSelectedItem() != null) {
+			cp.setPerson((Person) this.cbPerson.getSelectedItem());
+		} else {
+			allSet = false;
+			POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Person Name can not be empty!");
+		}
+		if (allSet) {
+			CompanyDetailModel tableModel = (CompanyDetailModel) this.table.getModel();
+			boolean flag = false;
+			if (tableModel.getRows() != null) {
+				for (CompanyPerson cp1 : tableModel.getRows()) {
+					if (cp1.equals(cp)) {
+						flag = true;
+						break;
+					}
+				}
+			}
+			if (!flag) {
+				if (tbd.contains(cp)) {
+					tbd.remove(cp);
+				}
+				tableModel.addItem(cp);
+			} else {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Duplicate entry!");
+			}
+		}
 	}
 
 	public void clearFields() {
@@ -98,25 +186,24 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 		this.tfPhone.setText("");
 		this.tfEmail.setText("");
 		this.taAddress.setText("");
-		this.p1Label.setText("");
-		this.p2Label.setText("");
-		this.p3Label.setText("");
-		this.cbP1.setSelectedItem(null);
-		this.cbP2.setSelectedItem(null);
-		this.cbP3.setSelectedItem(null);
+		this.persLabel.setText("");
+		this.cbPerson.setSelectedIndex(-1);
 	}
 
 	public void setFieldsEnable(boolean enable) {
+		this.nameLabel.setEnabled(enable);
+		this.phoneLabel.setEnabled(enable);
+		this.emailLabel.setEnabled(enable);
+		this.addLabel.setEnabled(enable);
+		this.btnAdd.setEnabled(enable);
+		this.btnDel.setEnabled(enable);
 		this.tfName.setEnabled(enable);
 		this.tfPhone.setEnabled(enable);
 		this.tfEmail.setEnabled(enable);
 		this.taAddress.setEnabled(enable);
-		this.p1Label.setEnabled(enable);
-		this.p2Label.setEnabled(enable);
-		this.p3Label.setEnabled(enable);
-		this.cbP1.setEnabled(enable);
-		this.cbP2.setEnabled(enable);
-		this.cbP3.setEnabled(enable);
+		this.table.setEnabled(enable);
+		this.persLabel.setEnabled(enable);
+		this.cbPerson.setEnabled(enable);
 	}
 
 	public void updateView() {
@@ -128,50 +215,80 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 		this.tfPhone.setText(model.getPhone());
 		this.tfEmail.setText(model.getEmail());
 		this.taAddress.setText(model.getAddress());
-		this.cbP1.setSelectedItem(model.getPersonByP1Id());
-		this.cbP2.setSelectedItem(model.getPersonByP2Id());
-		this.cbP3.setSelectedItem(model.getPersonByP3Id());
+		loadTableData();
 	}
 
 	public boolean updateModel() {
-		Company model = (Company) getBean();
-		if (model == null) {
-			model = new Company();
-			setBean(model);
+		Company comp = (Company) getBean();
+		if (comp == null) {
+			createNew();
 		}
-		String nameString = this.tfName.getText();
-		if (StringUtils.isEmpty(nameString)) {
-			throw new PosException("Name cannot be empty");
+		if (StringUtils.isEmpty(this.tfName.getText())) {
+			POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Company Name is empty");
+			return false;
 		}
-		model.setName(nameString);
-		model.setPhone(this.tfPhone.getText());
-		model.setEmail(this.tfEmail.getText());
-		model.setAddress(this.taAddress.getText());
-		if (this.cbP1.getSelectedItem() != null) {
-			model.setPersonByP1Id((Person) this.cbP1.getSelectedItem());
-		} else {
-			model.setPersonByP1Id(null);
-		}
-		if (this.cbP2.getSelectedItem() != null) {
-			model.setPersonByP2Id((Person) this.cbP2.getSelectedItem());
-		} else {
-			model.setPersonByP2Id(null);
-		}
-		if (this.cbP3.getSelectedItem() != null) {
-			model.setPersonByP3Id((Person) this.cbP3.getSelectedItem());
-		} else {
-			model.setPersonByP3Id(null);
-		}
+		comp.setName(this.tfName.getText());
+		comp.setPhone(this.tfPhone.getText());
+		comp.setEmail(this.tfEmail.getText());
+		comp.setAddress(this.taAddress.getText());
 		return true;
 	}
 
-	public boolean delete() {
-		Company company = (Company) getBean();
-		if (company == null) {
-			return false;
+	// public boolean delete() {
+	// Company company = (Company) getBean();
+	// if (company == null) {
+	// return false;
+	// }
+	// CompanyDAO.getInstance().delete(company);
+	// return true;
+	// }
+
+	public boolean save() {
+		Session session = CompanyDAO.getInstance().createNewSession();
+		if (session != null) {
+			Transaction tx = session.beginTransaction();
+			boolean actionPerformed = false;
+			try {
+				if (updateModel()) {
+					Company comp = (Company) getBean();
+					if (comp.getName() == null) {
+						actionPerformed = false;
+						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Company name!!");
+					} else {
+						CompanyDAO dao = CompanyDAO.getInstance();
+						dao.saveOrUpdate(comp);
+						CompanyPersonDAO cpDao = CompanyPersonDAO.getInstance();
+						CompanyDetailModel tableModel = (CompanyDetailModel) this.table.getModel();
+						if (tableModel.getRows() != null) {
+							for (CompanyPerson ic : tableModel.getRows()) {
+								cpDao.saveOrUpdate(ic);
+							}
+						}
+						for (CompanyPerson ic : tbd) {
+							if (ic.getId() != null) {
+								cpDao.refresh(ic);
+								cpDao.delete(ic);
+							}
+						}
+					}
+				}
+				if (actionPerformed) {
+					tx.commit();
+				} else {
+					tx.rollback();
+					return false;
+				}
+			} catch (Exception e) {
+				if (tx != null) {
+					tx.rollback();
+				}
+				session.close();
+				POSMessageDialog.showError(e.getMessage(), e);
+				return false;
+			}
+			return true;
 		}
-		CompanyDAO.getInstance().delete(company);
-		return true;
+		return false;
 	}
 
 	public String getDisplayText() {
@@ -182,22 +299,40 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 		return "Edit Company";
 	}
 
-	public boolean save() {
-		try {
-			if (!updateModel()) {
-				return false;
-			}
-			CompanyDAO dao = CompanyDAO.getInstance();
-			dao.saveOrUpdate((Company) getBean());
-			return true;
-		} catch (Exception e) {
-			POSMessageDialog.showError(e.getMessage(), e);
+	public void loadTableData() {
+		Company comp = (Company) getBean();
+		CompanyDetailModel tableModel = (CompanyDetailModel) this.table.getModel();
+		if (comp.getId() != null) {
+			List<CompanyPerson> tuple = CompanyPersonDAO.getInstance().findAllByCompany(comp);
+			tableModel.setRows(tuple);
 		}
-		return false;
+	}
+
+	static class CompanyDetailModel extends ListTableModel<CompanyPerson> {
+		private static final long serialVersionUID = -5532926699493030221L;
+
+		public CompanyDetailModel() {
+			super(new String[] { "Person" });
+		}
+
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			CompanyPerson row = (CompanyPerson) getRowData(rowIndex);
+			switch (columnIndex) {
+			case 0:
+				return row.getPerson().getName();
+			}
+			return null;
+		}
+
 	}
 
 	public void setFieldsEnableEdit() {
-
+		this.tfName.setEnabled(true);
+		this.tfPhone.setEnabled(true);
+		this.tfEmail.setEnabled(true);
+		this.taAddress.setEnabled(true);
+		this.cbPerson.setEnabled(true);
+		this.table.setEnabled(true);
 	}
 
 }
