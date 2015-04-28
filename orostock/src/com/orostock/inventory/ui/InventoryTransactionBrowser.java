@@ -13,6 +13,7 @@ import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.InOutEnum;
 import com.floreantpos.model.InventoryTransaction;
 import com.floreantpos.model.dao.InventoryTransactionDAO;
+import com.orostock.inventory.ui.form.InventoryTransactionEntryForm;
 
 public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransaction> {
 	/**

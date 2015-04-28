@@ -10,6 +10,7 @@ import com.floreantpos.bo.ui.ModelBrowser;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.PackagingUnit;
 import com.floreantpos.model.dao.PackagingUnitDAO;
+import com.orostock.inventory.ui.form.PackagingUnitEntryForm;
 
 public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 	/**

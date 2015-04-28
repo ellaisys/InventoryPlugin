@@ -11,6 +11,7 @@ import com.floreantpos.bo.ui.ModelBrowser;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.Company;
 import com.floreantpos.model.dao.CompanyDAO;
+import com.orostock.inventory.ui.form.CompanyEntryForm;
 
 public class CompanyBrowser extends ModelBrowser<Company> {
 
@@ -27,6 +28,7 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 		init(new CompanyTableModel());
 		cf.setFieldsEnable(false);
 		hideDeleteBtn();
+		refreshTable();
 	}
 
 	public void loadData() {
@@ -38,6 +40,7 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
 	}
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
@@ -54,13 +57,10 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 	}
 
 	static class CompanyTableModel extends ListTableModel<Company> {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 8008682351957964208L;
 
 		public CompanyTableModel() {
-			super(new String[] { "NAME", "PHONE", "ADDRESS" });
+			super(new String[] { "COMPANY NAME", "PHONE", "ADDRESS" });
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {

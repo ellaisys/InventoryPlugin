@@ -1,4 +1,4 @@
-package com.orostock.inventory.ui;
+package com.orostock.inventory.ui.form;
 
 import java.awt.BorderLayout;
 import java.awt.TextField;
@@ -28,6 +28,7 @@ public class PersonEntryForm extends BeanEditor<Person> {
 	private TextField tfPhone;
 	private TextField tfDesignation;
 	private TextField tfEmail;
+	private TextField tfRef;
 	private JTextArea taAddress;
 	JPanel mainPanel = new JPanel();
 
@@ -58,6 +59,10 @@ public class PersonEntryForm extends BeanEditor<Person> {
 		this.tfEmail = new TextField(40);
 		mainPanel.add(this.tfEmail, "grow, wrap");
 
+		mainPanel.add(new JLabel("Reference"));
+		this.tfRef = new TextField();
+		mainPanel.add(this.tfRef, "grow, wrap");
+
 		mainPanel.add(new JLabel("Address"));
 		this.taAddress = new JTextArea();
 		mainPanel.add(new JScrollPane(this.taAddress), "grow, h 100px, wrap");
@@ -73,6 +78,7 @@ public class PersonEntryForm extends BeanEditor<Person> {
 		this.tfDesignation.setText("");
 		this.tfPhone.setText("");
 		this.tfEmail.setText("");
+		this.tfRef.setText("");
 		this.taAddress.setText("");
 	}
 
@@ -80,6 +86,7 @@ public class PersonEntryForm extends BeanEditor<Person> {
 		this.tfName.setEnabled(enable);
 		this.tfPhone.setEnabled(enable);
 		this.tfDesignation.setEnabled(enable);
+		this.tfRef.setEnabled(enable);
 		this.tfEmail.setEnabled(enable);
 		this.taAddress.setEnabled(enable);
 	}
@@ -93,6 +100,7 @@ public class PersonEntryForm extends BeanEditor<Person> {
 		this.tfPhone.setText(model.getPhone());
 		this.tfDesignation.setText(model.getDesignation());
 		this.tfEmail.setText(model.getEmail());
+		this.tfRef.setText(model.getRef());
 		this.taAddress.setText(model.getAddress());
 	}
 
@@ -109,6 +117,7 @@ public class PersonEntryForm extends BeanEditor<Person> {
 		model.setName(nameString);
 		model.setDesignation(this.tfDesignation.getText());
 		model.setPhone(this.tfPhone.getText());
+		model.setRef(this.tfRef.getText());
 		model.setEmail(this.tfEmail.getText());
 		model.setAddress(this.taAddress.getText());
 		return true;

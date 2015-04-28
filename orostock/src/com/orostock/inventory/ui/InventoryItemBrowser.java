@@ -19,6 +19,8 @@ import com.floreantpos.model.InventoryWarehouseItem;
 import com.floreantpos.model.dao.InventoryItemDAO;
 import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
+import com.orostock.inventory.ui.form.InventoryItemEntryForm;
+import com.orostock.inventory.ui.form.InventoryTransactionEntryForm;
 
 public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 	/**

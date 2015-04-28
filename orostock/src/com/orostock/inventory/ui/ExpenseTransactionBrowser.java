@@ -15,6 +15,7 @@ import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.ExpenseTransaction;
 import com.floreantpos.model.dao.ExpenseTransactionDAO;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
+import com.orostock.inventory.ui.form.ExpenseTransactionEntryForm;
 
 public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> {
 	/**

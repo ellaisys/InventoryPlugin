@@ -7,7 +7,7 @@ import javax.swing.AbstractAction;
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.InventoryLocation;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
-import com.orostock.inventory.ui.InventoryLocationEntryForm;
+import com.orostock.inventory.ui.form.InventoryLocationEntryForm;
  
  public class InventoryLocationEntryAction extends AbstractAction
  {

@@ -11,6 +11,7 @@ import com.floreantpos.bo.ui.ModelBrowser;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.Person;
 import com.floreantpos.model.dao.PersonDAO;
+import com.orostock.inventory.ui.form.PersonEntryForm;
 
 public class PersonBrowser extends ModelBrowser<Person> {
 
@@ -61,7 +62,7 @@ public class PersonBrowser extends ModelBrowser<Person> {
 		private static final long serialVersionUID = 8008682351957964208L;
 
 		public PersonTableModel() {
-			super(new String[] { "NAME", "DESIGNATION", "PHONE", "EMAIL", "ADDRESS" });
+			super(new String[] { "NAME", "DESIGNATION", "PHONE", "EMAIL", "REFERENCE" });
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -76,9 +77,9 @@ public class PersonBrowser extends ModelBrowser<Person> {
 			case 3:
 				return row.getEmail();
 			case 4:
-				return row.getAddress();
+				return row.getRef();
 			}
-			return row.getName();
+			return null;
 		}
 	}
 }

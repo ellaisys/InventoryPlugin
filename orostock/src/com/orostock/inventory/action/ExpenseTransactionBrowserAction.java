@@ -1,4 +1,4 @@
-package com.orostock.inventory.ui;
+package com.orostock.inventory.action;
 
 import java.awt.event.ActionEvent;
 
@@ -6,6 +6,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JTabbedPane;
 
 import com.floreantpos.bo.ui.BackOfficeWindow;
+import com.orostock.inventory.ui.ExpenseTransactionBrowser;
 
 public class ExpenseTransactionBrowserAction extends AbstractAction {
 

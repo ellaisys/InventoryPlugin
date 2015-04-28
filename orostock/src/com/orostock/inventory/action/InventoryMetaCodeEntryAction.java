@@ -7,7 +7,7 @@ import javax.swing.AbstractAction;
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.InventoryMetaCode;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
-import com.orostock.inventory.ui.InventoryMetacodeEntryForm;
+import com.orostock.inventory.ui.form.InventoryMetacodeEntryForm;
  
  public class InventoryMetaCodeEntryAction extends AbstractAction
  {

@@ -1,4 +1,4 @@
-package com.orostock.inventory.ui;
+package com.orostock.inventory.ui.form;
 
 import java.awt.BorderLayout;
 

@@ -7,7 +7,7 @@ import javax.swing.AbstractAction;
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.InventoryWarehouse;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
-import com.orostock.inventory.ui.InventoryWarehouseEntryForm;
+import com.orostock.inventory.ui.form.InventoryWarehouseEntryForm;
 
 public class InventoryWarehouseEntryAction extends AbstractAction
 {
