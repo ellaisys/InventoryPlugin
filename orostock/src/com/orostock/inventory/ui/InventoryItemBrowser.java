@@ -63,6 +63,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			InventoryTransactionEntryForm form = new InventoryTransactionEntryForm();
 			form.setBean(new InventoryTransaction());
 			form.setInventoryItem(bean);
+			form.setNewTransaction(true);
 			BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
 			dialog.pack();
 			dialog.open();

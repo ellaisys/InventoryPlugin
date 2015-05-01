@@ -57,7 +57,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 	private final JButton btnDel = new JButton("Delete");
 
 	public ExpenseVendorEntryForm() {
-		clearTableModel();
+		setPreferredSize(new Dimension(300, 400));
 		createUI();
 		tbd = new HashSet<VendorPerson>();
 		populateComboBoxes();
@@ -67,6 +67,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 	private void populateComboBoxes() {
 		List<Person> pList = PersonDAO.getInstance().findAll();
 		this.cbPerson.setModel(new DefaultComboBoxModel(pList.toArray(new Person[0])));
+		this.cbPerson.setSelectedIndex(-1);
 	}
 
 	public void createNew() {
@@ -206,6 +207,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 		this.tfPhone.setText(vend.getPhone());
 		this.tfEmail.setText(vend.getEmail());
 		this.taAddress.setText(vend.getAddress());
+		this.cbPerson.setSelectedIndex(-1);
 		tbd.clear();
 		loadTableData();
 	}

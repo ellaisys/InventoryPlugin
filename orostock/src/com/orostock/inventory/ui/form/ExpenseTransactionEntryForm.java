@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -20,16 +21,19 @@ import org.jdesktop.swingx.JXComboBox;
 
 import com.date.picker.DateTimePicker;
 import com.floreantpos.bo.ui.BackOfficeWindow;
+import com.floreantpos.model.ExpenseHead;
 import com.floreantpos.model.ExpenseTransaction;
 import com.floreantpos.model.ExpenseTransactionType;
 import com.floreantpos.model.ExpenseTypeEnum;
 import com.floreantpos.model.InventoryVendor;
+import com.floreantpos.model.dao.ExpenseHeadDAO;
 import com.floreantpos.model.dao.ExpenseTransactionDAO;
 import com.floreantpos.model.dao.ExpenseTransactionTypeDAO;
 import com.floreantpos.model.dao.InventoryVendorDAO;
 import com.floreantpos.model.util.IllegalModelStateException;
 import com.floreantpos.swing.DoubleTextField;
 import com.floreantpos.ui.BeanEditor;
+import com.floreantpos.ui.dialog.BeanEditorDialog;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
 public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> implements ActionListener {
@@ -52,6 +56,8 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 	private JLabel dateLabel;
 	private InventoryVendor vendor;
 	JPanel mainPanel = new JPanel();
+	private final JXComboBox cbExHead = new JXComboBox();
+	private final JButton btnNewHead = new JButton("New Head");
 
 	public ExpenseTransactionEntryForm() {
 		createUI();
@@ -76,18 +82,18 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 
 		this.cbTransactionType.setModel(new DefaultComboBoxModel(transactionTypes.toArray(new ExpenseTransactionType[0])));
 
-		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance().findAll();
+		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance().findAllExpenseVendors(true);
 		this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new InventoryVendor[0])));
+
+		List<ExpenseHead> heads = ExpenseHeadDAO.getInstance().findAll();
+		this.cbExHead.setModel(new DefaultComboBoxModel(heads.toArray(new ExpenseHead[0])));
+		cbExHead.setSelectedIndex(-1);
 	}
 
 	private void createUI() {
 		setLayout(new MigLayout());
 
-		add(vendorLabel = new JLabel("Vendor"));
-		// this.tfVendor = new JTextField(20);
-		// this.tfVendor.setEnabled(false);
-		// add(this.tfVendor, "grow, wrap");
-
+		add(vendorLabel = new JLabel("Expense Vendor"));
 		this.cbVendor = new JXComboBox();
 		this.cbVendor.addActionListener(this);
 		add(this.cbVendor, "wrap, w 150px");
@@ -96,6 +102,15 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		this.cbTransactionType = new JXComboBox();
 		this.cbTransactionType.addActionListener(this);
 		add(this.cbTransactionType, "wrap, w 150px");
+
+		add(new JLabel("Expense head"));
+		add(this.cbExHead, "wrap, w 150px");
+		this.btnNewHead.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				ExpenseTransactionEntryForm.this.createNewHead();
+			}
+		});
+		add(this.btnNewHead, "cell 2 10");
 
 		add(amountLabel = new JLabel("Amount"));
 		this.tfAmount = new DoubleTextField(20);
@@ -120,9 +135,22 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		add(new JScrollPane(this.taNote), "grow, h 100px, wrap");
 	}
 
+	protected void createNewHead() {
+		ExpenseHeadEntryForm form = new ExpenseHeadEntryForm(new ExpenseHead());
+		BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
+		dialog.pack();
+		dialog.open();
+		if (dialog.isCanceled()) {
+			return;
+		}
+		ExpenseHead exHead = (ExpenseHead) form.getBean();
+		DefaultComboBoxModel<ExpenseHead> cbModel = (DefaultComboBoxModel) this.cbExHead.getModel();
+		cbModel.addElement(exHead);
+		cbModel.setSelectedItem(exHead);
+	}
+
 	public void setInventoryVendor(InventoryVendor bean) {
 		this.vendor = bean;
-		// this.tfVendor.setText(vendor.getName());
 	}
 
 	public void createNew() {
@@ -130,7 +158,6 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 	}
 
 	public void clearFields() {
-		// this.tfVendor.setText("");
 		this.tfAmount.setText("");
 		this.tfVAT.setText("");
 		this.taNote.setText("");
@@ -139,7 +166,6 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 	}
 
 	public void setFieldsEnable(boolean enable) {
-		// this.tfVendor.setEnabled(enable);
 		this.tfAmount.setEnabled(enable);
 		this.tfVAT.setEnabled(enable);
 		this.cbTransactionType.setEnabled(enable);
@@ -150,7 +176,6 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 	}
 
 	public void setFieldsEnableEdit() {
-		// this.tfVendor.setEnabled(false);
 		this.tfAmount.setEnabled(false);
 		this.tfVAT.setEnabled(false);
 		this.cbTransactionType.setEnabled(false);
@@ -214,7 +239,6 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 			return;
 		}
 		if (expenseTransaction.getInventoryVendor() != null) {
-			// this.tfVendor.setText(expenseTransaction.getVendor().getName());
 			this.cbVendor.setSelectedItem(expenseTransaction.getInventoryVendor());
 			setInventoryVendor(expenseTransaction.getInventoryVendor());
 		}
@@ -236,6 +260,9 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		if (expenseTransaction.isCreditCheck()) {
 			this.creditCheck.setSelected(expenseTransaction.isCreditCheck());
 		}
+		if (expenseTransaction.getExpenseHead() != null) {
+			this.cbExHead.setSelectedItem(expenseTransaction.getExpenseHead());
+		}
 
 	}
 
@@ -254,6 +281,7 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 			model.setVatPaid(Double.valueOf(this.tfVAT.getDouble()));
 			model.setCreditCheck(creditCheck.isSelected());
 			model.setTransactionDate(this.datePicker.getDate());
+			model.setExpenseHead((ExpenseHead) this.cbExHead.getSelectedItem());
 		}
 		model.setRemark(this.taNote.getText());
 		return true;
@@ -265,13 +293,14 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 
 	public void actionPerformed(ActionEvent arg0) {
 		System.out.println(arg0.paramString());
-		// this.tfVendor.setVisible(true);
 		this.tfAmount.setVisible(true);
 		this.tfVAT.setVisible(true);
 		this.cbTransactionType.setVisible(true);
 		this.datePicker.setVisible(true);
 		this.taNote.setVisible(true);
 		this.creditCheck.setVisible(true);
+		this.cbExHead.setVisible(true);
+		this.btnNewHead.setVisible(true);
 	}
 
 }

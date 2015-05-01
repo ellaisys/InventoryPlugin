@@ -1,11 +1,14 @@
 package com.orostock.inventory.ui;
 
+import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
 
 import com.floreantpos.bo.ui.BackOfficeWindow;
@@ -32,6 +35,14 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
 		this.btnNewExpense.setEnabled(true);
 		init(new ExpenseTransactionTableModel());
+		Component[] components = this.browserPanel.getComponents();
+		for (Component c : components) {
+			if (c instanceof JScrollPane) {
+				c.setPreferredSize((new Dimension(650, 400)));
+			}
+		}
+		et.setPreferredSize((new Dimension(300, 400)));
+		this.invalidate();
 		hideDeleteBtn();
 		hideNewBtn();
 		et.setFieldsEnable(false);

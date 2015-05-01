@@ -49,6 +49,8 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		InventoryTransaction bean = (InventoryTransaction) this.beanEditor.getBean();
 		if ((bean != null) && (bean.getInventoryItem() != null)) {
 			itForm.setInventoryItem(bean.getInventoryItem());
+			itForm.setNewTransaction(false);
+
 		}
 	}
 
@@ -69,7 +71,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		private static final long serialVersionUID = 6168307011011117975L;
 
 		public InventoryTransactionTableModel() {
-			super(new String[] { "DATE", "TYPE", "QTY", "ITEM", "AMOUNT", "VAT", "VENDOR", "CREDIT", "WAREHOUSE", "REMARKS" });
+			super(new String[] { "DATE", "TYPE", "QTY", "ITEM", "AMOUNT", "VAT", "DISTRIBUTOR", "CREDIT", "WAREHOUSE" });
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -140,8 +142,6 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 				} else {
 					return "";
 				}
-			case 9:
-				return row.getRemark();
 			}
 			return null;
 		}

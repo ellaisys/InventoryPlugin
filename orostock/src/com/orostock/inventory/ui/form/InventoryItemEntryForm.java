@@ -98,16 +98,19 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 
 		List<InventoryGroup> groups = InventoryGroupDAO.getInstance().findAll();
 		this.cbGroup.setModel(new DefaultComboBoxModel(groups.toArray(new InventoryGroup[0])));
+		this.cbGroup.setSelectedIndex(-1);
 
 		List<Company> companies = CompanyDAO.getInstance().findAll();
 		this.cbCompany.setModel(new DefaultComboBoxModel(companies.toArray(new Company[0])));
+		this.cbCompany.setSelectedIndex(-1);
 
-		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance().findAllExpenseVendors(true);
+		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance().findAllExpenseVendors(false);
 		this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new InventoryVendor[0])));
+		this.cbVendor.setSelectedIndex(-1);
 
 		List<PackSize> packSize = PackSizeDAO.getInstance().findAll();
 		this.cbPackSize.setModel(new DefaultComboBoxModel(packSize.toArray(new PackSize[0])));
-
+		this.cbPackSize.setSelectedIndex(-1);
 	}
 
 	public void createNew() {
@@ -327,6 +330,10 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.tfPackSizeReplenishLevel.setText(String.valueOf(inventoryItem.getPackageReplenishLevel()));
 		this.tfDescription.setText(inventoryItem.getDescription());
 		this.cbGroup.setSelectedItem(inventoryItem.getInventoryGroup());
+		this.cbGroup.setSelectedIndex(-1);
+		this.cbCompany.setSelectedIndex(-1);
+		this.cbVendor.setSelectedIndex(-1);
+		this.cbPackSize.setSelectedIndex(-1);
 		tbd.clear();
 		loadTableData();
 	}

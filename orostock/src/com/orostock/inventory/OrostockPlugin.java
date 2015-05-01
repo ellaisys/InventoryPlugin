@@ -24,15 +24,18 @@ public class OrostockPlugin implements InventoryPlugin {
 				new InventoryItemBrowserAction(), 
 				new ExpenseVendorBrowserAction(), 
 				new DistributorBrowserAction(), 
-				new PackagingUnitBrowserAction(), 
 				new ExpenseTransactionBrowserAction(),
-				new InventoryTransactionBrowserAction(), 
-				new PersonBrowserAction(),
-				new CompanyBrowserAction()};
+				new InventoryTransactionBrowserAction() };
+	}
+
+	public AbstractAction[] getBrowserActions() {
+		return new AbstractAction[] { 
+				new PackagingUnitBrowserAction(), 
+				new PersonBrowserAction(), 
+				new CompanyBrowserAction() };
 	}
 
 	public void addRecepieView(JTabbedPane tabbedPane, MenuItem m) {
 		tabbedPane.addTab("Recipe", new RecepieView(m));
 	}
 }
-

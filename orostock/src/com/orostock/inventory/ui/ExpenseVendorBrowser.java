@@ -28,6 +28,7 @@ public class ExpenseVendorBrowser extends ModelBrowser<InventoryVendor> {
 
 	public ExpenseVendorBrowser() {
 		super(ivf);
+		ivf.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());

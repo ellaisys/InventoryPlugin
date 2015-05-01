@@ -57,7 +57,6 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 	private final JButton btnDel = new JButton("Delete");
 
 	public CompanyEntryForm() {
-		clearTableModel();
 		createUI();
 		tbd = new HashSet<CompanyPerson>();
 		populateComboBoxes();
@@ -74,6 +73,7 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 	private void populateComboBoxes() {
 		List<Person> pList = PersonDAO.getInstance().findAll();
 		this.cbPerson.setModel(new DefaultComboBoxModel(pList.toArray(new Person[0])));
+		this.cbPerson.setSelectedIndex(-1);
 	}
 
 	public void createNew() {
@@ -212,6 +212,7 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 		this.tfPhone.setText(comp.getPhone());
 		this.tfEmail.setText(comp.getEmail());
 		this.taAddress.setText(comp.getAddress());
+		this.cbPerson.setSelectedIndex(-1);
 		tbd.clear();
 		loadTableData();
 	}
