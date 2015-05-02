@@ -1,5 +1,6 @@
 package com.orostock.inventory.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public class ExpenseVendorBrowser extends ModelBrowser<InventoryVendor> {
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
 		this.btnNewExpense.setEnabled(false);
-		init(new InventoryVendorTableModel());
+		init(new InventoryVendorTableModel(), new Dimension(300, 400), new Dimension(650, 400));
 		ivf.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();
@@ -43,12 +44,14 @@ public class ExpenseVendorBrowser extends ModelBrowser<InventoryVendor> {
 		List<InventoryVendor> inventoryVendors = InventoryVendorDAO.getInstance().findAllExpenseVendors(true);
 		InventoryVendorTableModel tableModel = (InventoryVendorTableModel) this.browserTable.getModel();
 		tableModel.setRows(inventoryVendors);
-		tableModel.setPageSize(25);
-
 	}
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
+	}
+
+	public void refreshUITable() {
 		super.refreshTable();
 	}
 
@@ -79,6 +82,7 @@ public class ExpenseVendorBrowser extends ModelBrowser<InventoryVendor> {
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
+		ivf.setFieldsEnable(false);
 		InventoryVendor bean = (InventoryVendor) this.beanEditor.getBean();
 		if ((bean != null) && (bean.getId() != null)) {
 			this.btnNewExpense.setEnabled(true);

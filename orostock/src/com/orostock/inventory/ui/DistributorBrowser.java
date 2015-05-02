@@ -1,5 +1,6 @@
 package com.orostock.inventory.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -22,9 +23,10 @@ public class DistributorBrowser extends ModelBrowser<InventoryVendor> {
 
 	public DistributorBrowser() {
 		super(df);
+		df.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
-		init(new DistributorTableModel());
+		init(new DistributorTableModel(), new Dimension(300, 400), new Dimension(650, 400));
 		df.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();
@@ -34,11 +36,14 @@ public class DistributorBrowser extends ModelBrowser<InventoryVendor> {
 		List<InventoryVendor> inventoryVendors = InventoryVendorDAO.getInstance().findAllExpenseVendors(false);
 		DistributorTableModel tableModel = (DistributorTableModel) this.browserTable.getModel();
 		tableModel.setRows(inventoryVendors);
-		tableModel.setPageSize(25);
 	}
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
+	}
+
+	public void refreshUITable() {
 		super.refreshTable();
 	}
 
@@ -50,6 +55,7 @@ public class DistributorBrowser extends ModelBrowser<InventoryVendor> {
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
+		df.setFieldsEnable(false);
 	}
 
 	protected void searchInventoryVendor() {

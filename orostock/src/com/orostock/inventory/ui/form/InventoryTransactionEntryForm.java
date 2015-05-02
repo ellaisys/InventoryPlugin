@@ -221,8 +221,10 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.tfItem.setEnabled(false);
 		add(this.tfItem, "grow, wrap");
 
-		add(this.dateLabel = new JLabel("Date"));
-		this.datePicker = new DateTimePicker(new Date());
+		add(dateLabel = new JLabel("Date"));
+		this.datePicker = new DateTimePicker();
+		datePicker.setFormats("dd-MM-yyyy HH:mm");
+		datePicker.setDate(new Date());
 		add(this.datePicker, "wrap, w 200px");
 
 		add(this.companyLabel = new JLabel("Company"));
@@ -321,7 +323,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 				int replenishLevel = inventoryItem.getPackageReplenishLevel();
 				InventoryTransaction inventoryTransaction = (InventoryTransaction) getBean();
 				if (inventoryTransaction.getInventoryTransactionType().getInOutEnum() == InOutEnum.IN || inventoryTransaction.getInventoryTransactionType().getInOutEnum() == InOutEnum.OUT) {
-					if (inventoryTransaction.getVatPaid() < 0) {
+					if (inventoryTransaction.getVatPaid() == null || inventoryTransaction.getVatPaid().getRate() < 0) {
 						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid VAT!!");
 						actionPerformed = false;
 						return false;
@@ -330,7 +332,11 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 						actionPerformed = false;
 						return false;
 					} else if (inventoryTransaction.getTotalPrice() == 0) {
-						POSMessageDialog.showMessage(BackOfficeWindow.getInstance(), "Are you sure item cost is zero??");
+						int i = POSMessageDialog.ShowOkcancel(BackOfficeWindow.getInstance(), "Are you sure item cost is zero??");
+						if (i == 2 || i == -1) {
+							actionPerformed = false;
+							return false;
+						}
 					}
 				}
 				if (inventoryTransaction.getQuantity() <= 0) {
@@ -504,7 +510,6 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 
 	public void clearFields() {
 		this.tfItem.setText("");
-		this.cbTransactionType.setSelectedIndex(-1);
 		this.tfTotalPrice.setText("");
 		this.tfDiscount.setText("");
 		this.tfUnit.setText("");
@@ -516,6 +521,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.cbVendor.setSelectedIndex(-1);
 		this.cbCompany.setSelectedIndex(-1);
 		this.cbPackSize.setSelectedIndex(-1);
+		this.cbTransactionType.setSelectedIndex(1);
 	}
 
 	protected void updateView() {
@@ -540,12 +546,17 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		}
 		this.tfTotalPrice.setText(Double.toString(transaction.getTotalPrice()));
 		this.tfDiscount.setText(Double.toString(transaction.getDiscount()));
-		this.cbVat.setSelectedItem(transaction.getVatPaid());
+		if (transaction.getVatPaid() != null) {
+			this.cbVat.setSelectedItem(transaction.getVatPaid());
+		}
 		this.tfUnit.setText(Double.toString(transaction.getQuantity()));
 		if (transaction.getCompany() != null) {
 			this.cbCompany.setSelectedItem(transaction.getCompany());
 		}
 		if (transaction.getInventoryVendor() != null) {
+			if (!newTransaction && mapCompVend.containsKey(transaction.getCompany())) {
+				this.cbVendor.setModel(new DefaultComboBoxModel(mapCompVend.get(transaction.getCompany()).toArray(new InventoryVendor[0])));
+			}
 			this.cbVendor.setSelectedItem(transaction.getInventoryVendor());
 		}
 		if (transaction.getRemark() != null) {
@@ -558,6 +569,11 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.creditCheck.setSelected(transaction.isCreditCheck());
 		}
 		if (transaction.getPackSize() != null) {
+			Pair<InventoryVendor, Company> pair = Pair.of(transaction.getInventoryVendor(), transaction.getCompany());
+
+			if (!newTransaction && mapCVPack.containsKey(pair)) {
+				cbPackSize.setModel(new DefaultComboBoxModel(mapCVPack.get(pair).toArray(new PackSize[0])));
+			}
 			this.cbPackSize.setSelectedItem(transaction.getPackSize());
 		}
 	}
@@ -572,12 +588,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		transaction.setInventoryItem(this.inventoryItem);
 		if (this.cbCompany.getSelectedItem() != null) {
 			transaction.setCompany(((Company) this.cbCompany.getSelectedItem()));
-		}
-		if (this.cbVendor.getSelectedItem() != null) {
-			transaction.setInventoryVendor((InventoryVendor) this.cbVendor.getSelectedItem());
-		}
-		if (this.cbPackSize.getSelectedItem() != null) {
-			transaction.setPackSize((PackSize) this.cbPackSize.getSelectedItem());
+		} else {
+			POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Company!!");
 		}
 		switch (transType.getInOutEnum()) {
 		case IN:
@@ -585,18 +597,38 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			transaction.setTotalPrice(Double.valueOf(this.tfTotalPrice.getDouble()));
 			transaction.setDiscount(Double.valueOf(this.tfDiscount.getDouble()));
 			if (this.cbVat.getSelectedItem() != null) {
-				transaction.setVatPaid(((Tax) this.cbVat.getSelectedItem()).getRate());
+				transaction.setVatPaid(((Tax) this.cbVat.getSelectedItem()));
 			}
 			transaction.setCreditCheck(creditCheck.isSelected());
+			if (this.cbVendor.getSelectedItem() != null) {
+				transaction.setInventoryVendor((InventoryVendor) this.cbVendor.getSelectedItem());
+			} else {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Distributor!!");
+			}
+			if (this.cbPackSize.getSelectedItem() != null) {
+				transaction.setPackSize((PackSize) this.cbPackSize.getSelectedItem());
+			} else {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Pack size!!");
+			}
 			break;
 		case OUT:
 			transaction.setInventoryWarehouseByFromWarehouseId((InventoryWarehouse) this.outWareHouse.getSelectedItem());
 			transaction.setTotalPrice(Double.valueOf(this.tfTotalPrice.getDouble()));
 			transaction.setDiscount(Double.valueOf(this.tfDiscount.getDouble()));
 			if (this.cbVat.getSelectedItem() != null) {
-				transaction.setVatPaid(((Tax) this.cbVat.getSelectedItem()).getRate());
+				transaction.setVatPaid(((Tax) this.cbVat.getSelectedItem()));
 			}
 			transaction.setCreditCheck(creditCheck.isSelected());
+			if (this.cbVendor.getSelectedItem() != null) {
+				transaction.setInventoryVendor((InventoryVendor) this.cbVendor.getSelectedItem());
+			} else {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Distributor!!");
+			}
+			if (this.cbPackSize.getSelectedItem() != null) {
+				transaction.setPackSize((PackSize) this.cbPackSize.getSelectedItem());
+			} else {
+				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Pack size!!");
+			}
 			break;
 		case MOVEMENT:
 			transaction.setInventoryWarehouseByToWarehouseId((InventoryWarehouse) this.inWareHouse.getSelectedItem());
@@ -606,6 +638,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		case WASTAGE:
 			transaction.setInventoryWarehouseByFromWarehouseId((InventoryWarehouse) this.outWareHouse.getSelectedItem());
 			transaction.setTotalPrice(0.0d);
+			transaction.setInventoryVendor(null);
+			transaction.setPackSize(null);
 			break;
 		}
 		transaction.setQuantity(Double.valueOf(this.tfUnit.getDouble()));
@@ -620,71 +654,90 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	public void actionPerformed(ActionEvent arg0) {
 		System.out.println(arg0.paramString());
 		InventoryTransactionType type = (InventoryTransactionType) (((DefaultComboBoxModel<?>) ((JXComboBox) arg0.getSource()).getModel()).getSelectedItem());
+		this.tfItem.setVisible(true);
+		this.itemLabel.setVisible(true);
+		this.cbTransactionType.setVisible(true);
+		this.transLabel.setVisible(true);
+		this.datePicker.setVisible(true);
+		this.dateLabel.setVisible(true);
+		this.cbCompany.setVisible(true);
+		this.companyLabel.setVisible(true);
+		this.noteLabel.setVisible(true);
+		this.taNote.setVisible(true);
+		this.tfUnit.setVisible(true);
+		this.itemCountLabel.setVisible(true);
 		switch (type.getInOutEnum()) {
 		case IN:
-			this.outWareHouse.setVisible(false);
-			this.inWareHouse.setVisible(true);
 			this.cbVendor.setVisible(true);
-			this.outWareHouseLabel.setVisible(false);
-			this.inWareHouseLabel.setVisible(true);
 			this.vendorLabel.setVisible(true);
+			this.cbPackSize.setVisible(true);
+			this.packLabel.setVisible(true);
 			this.priceLabel.setVisible(true);
 			this.tfTotalPrice.setVisible(true);
-			this.tfDiscount.setVisible(true);
-			this.cbVat.setVisible(true);
-			this.creditCheck.setVisible(true);
 			this.vatLabel.setVisible(true);
+			this.cbVat.setVisible(true);
 			this.discountLabel.setVisible(true);
-			this.packLabel.setVisible(true);
-			this.cbPackSize.setVisible(true);
+			this.tfDiscount.setVisible(true);
+			this.creditCheck.setVisible(true);
+			this.inWareHouseLabel.setVisible(true);
+			this.inWareHouse.setVisible(true);
+			this.outWareHouse.setVisible(false);
+			this.outWareHouseLabel.setVisible(false);
+			this.itemCountLabel.setText("No of packs");
 			break;
 		case OUT:
-			this.outWareHouse.setVisible(true);
-			this.inWareHouse.setVisible(false);
 			this.cbVendor.setVisible(true);
-			this.outWareHouseLabel.setVisible(true);
-			this.inWareHouseLabel.setVisible(false);
 			this.vendorLabel.setVisible(true);
+			this.cbPackSize.setVisible(true);
+			this.packLabel.setVisible(true);
 			this.priceLabel.setVisible(true);
 			this.tfTotalPrice.setVisible(true);
 			this.vatLabel.setVisible(true);
+			this.cbVat.setVisible(true);
 			this.discountLabel.setVisible(true);
 			this.tfDiscount.setVisible(true);
-			this.cbVat.setVisible(true);
 			this.creditCheck.setVisible(true);
+			this.inWareHouseLabel.setVisible(false);
+			this.inWareHouse.setVisible(false);
+			this.outWareHouse.setVisible(true);
+			this.outWareHouseLabel.setVisible(true);
+			this.itemCountLabel.setText("No of packs");
 			break;
 		case MOVEMENT:
-			this.outWareHouse.setVisible(true);
-			this.inWareHouse.setVisible(true);
 			this.cbVendor.setVisible(true);
-			this.outWareHouseLabel.setVisible(true);
-			this.inWareHouseLabel.setVisible(true);
-			this.vatLabel.setVisible(false);
-			this.discountLabel.setVisible(false);
-			this.cbVat.setVisible(false);
 			this.vendorLabel.setVisible(true);
+			this.cbPackSize.setVisible(true);
+			this.packLabel.setVisible(true);
 			this.priceLabel.setVisible(false);
 			this.tfTotalPrice.setVisible(false);
+			this.vatLabel.setVisible(false);
+			this.cbVat.setVisible(false);
+			this.discountLabel.setVisible(false);
 			this.tfDiscount.setVisible(false);
 			this.creditCheck.setVisible(false);
+			this.inWareHouseLabel.setVisible(true);
+			this.inWareHouse.setVisible(true);
+			this.outWareHouse.setVisible(true);
+			this.outWareHouseLabel.setVisible(true);
+			this.itemCountLabel.setText("No of packs");
 			break;
 		case ADJUSTMENT:
 		case WASTAGE:
-			this.outWareHouse.setVisible(true);
 			this.cbVendor.setVisible(false);
-			this.inWareHouse.setVisible(false);
-			this.outWareHouseLabel.setVisible(true);
-			this.inWareHouseLabel.setVisible(false);
-			this.vatLabel.setVisible(false);
-			this.cbVat.setVisible(false);
 			this.vendorLabel.setVisible(false);
-			this.discountLabel.setVisible(false);
-			this.tfDiscount.setVisible(false);
+			this.cbPackSize.setVisible(false);
+			this.packLabel.setVisible(false);
 			this.priceLabel.setVisible(false);
 			this.tfTotalPrice.setVisible(false);
+			this.vatLabel.setVisible(false);
+			this.cbVat.setVisible(false);
+			this.discountLabel.setVisible(false);
+			this.tfDiscount.setVisible(false);
 			this.creditCheck.setVisible(false);
-			this.packLabel.setVisible(false);
-			this.cbPackSize.setVisible(false);
+			this.inWareHouseLabel.setVisible(false);
+			this.inWareHouse.setVisible(false);
+			this.outWareHouse.setVisible(true);
+			this.outWareHouseLabel.setVisible(true);
 			this.itemCountLabel.setText("Units (" + inventoryItem.getPackagingUnit().getRecepieUnitName() + ")");
 			break;
 		}

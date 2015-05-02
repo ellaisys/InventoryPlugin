@@ -34,7 +34,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
 		this.btnNewExpense.setEnabled(true);
-		init(new ExpenseTransactionTableModel());
+		init(new ExpenseTransactionTableModel(), new Dimension(400, 400), new Dimension(550, 400));
 		Component[] components = this.browserPanel.getComponents();
 		for (Component c : components) {
 			if (c instanceof JScrollPane) {
@@ -53,7 +53,6 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		List<ExpenseTransaction> expense = ExpenseTransactionDAO.getInstance().findByCurrentMonth();
 		ExpenseTransactionTableModel tableModel = (ExpenseTransactionTableModel) this.browserTable.getModel();
 		tableModel.setRows(expense);
-		tableModel.setPageSize(25);
 	}
 
 	protected JButton getAdditionalButton() {
@@ -62,6 +61,11 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
+	}
+
+	public void refreshUITable() {
+		super.refreshTable();
 	}
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
@@ -87,9 +91,11 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
+		et.setFieldsEnable(false);
 		ExpenseTransaction bean = (ExpenseTransaction) this.beanEditor.getBean();
-		if ((bean != null) && (bean.getId() != null)) {
+		if ((bean != null) && (bean.getInventoryVendor() != null)) {
 			this.btnNewExpense.setEnabled(true);
+			et.setInventoryVendor(bean.getInventoryVendor());
 		} else
 			this.btnNewExpense.setEnabled(false);
 	}
@@ -104,7 +110,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		private static final long serialVersionUID = -2312553573667836103L;
 
 		public ExpenseTransactionTableModel() {
-			super(new String[] { "TYPE", "DATE", "VENDOR", "AMOUNT", "VAT", "CREDIT", "REMARKS" });
+			super(new String[] { "TYPE", "DATE", "VENDOR", "AMOUNT", "VAT", "CREDIT" });
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -142,8 +148,6 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 					} else {
 						return "F";
 					}
-				case 6:
-					return row.getRemark();
 				}
 			} catch (Exception e) {
 				e.printStackTrace();

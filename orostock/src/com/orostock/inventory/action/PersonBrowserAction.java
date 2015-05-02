@@ -29,6 +29,7 @@ public class PersonBrowserAction extends AbstractAction {
 			browser = new PersonBrowser();
 			tabbedPane.addTab("People Directory", browser);
 			browser.loadData();
+			browser.refreshUITable();
 		} else {
 			browser = (PersonBrowser) tabbedPane.getComponentAt(index);
 		}

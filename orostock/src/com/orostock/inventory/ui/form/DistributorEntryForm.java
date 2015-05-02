@@ -110,7 +110,7 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 
 		this.table = new JTable(new DistributorDetailModel());
 		DistributorDetailModel tableModel = (DistributorDetailModel) this.table.getModel();
-		tableModel.setPageSize(70);
+		tableModel.setPageSize(30);
 		JScrollPane jsp = new JScrollPane(this.table);
 		jsp.setPreferredSize(new Dimension(500, 200));
 		this.mainPanel.add(jsp, "cell 1 20");
@@ -299,6 +299,13 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 		if (comp.getId() != null) {
 			List<VendorPerson> tuple = VendorPersonDAO.getInstance().findAllByVendor(comp);
 			tableModel.setRows(tuple);
+		}
+	}
+
+	public void clearTableModel() {
+		if (this.table != null && this.table.getModel() != null) {
+			DistributorDetailModel tableModel = (DistributorDetailModel) this.table.getModel();
+			tableModel.setRows(null);
 		}
 	}
 

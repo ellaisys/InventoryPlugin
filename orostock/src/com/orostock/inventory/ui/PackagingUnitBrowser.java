@@ -1,5 +1,6 @@
 package com.orostock.inventory.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 		super(pf);
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
-		init(new PackagingUnitTableModel());
+		init(new PackagingUnitTableModel(), new Dimension(500, 400), new Dimension(350, 400));
 		hideDeleteBtn();
 		pf.setFieldsEnable(false);
 		refreshTable();
@@ -33,11 +34,15 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 		List<PackagingUnit> pUnits = PackagingUnitDAO.getInstance().findAll();
 		PackagingUnitTableModel tableModel = (PackagingUnitTableModel) this.browserTable.getModel();
 		tableModel.setRows(pUnits);
-		tableModel.setPageSize(25);
 	}
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
+	}
+
+	public void refreshUITable() {
+		super.refreshTable();
 	}
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {

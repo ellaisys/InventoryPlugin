@@ -6,33 +6,33 @@ import javax.swing.AbstractAction;
 import javax.swing.JTabbedPane;
 
 import com.floreantpos.bo.ui.BackOfficeWindow;
-import com.orostock.inventory.ui.ExpenseTransactionBrowser;
+import com.orostock.inventory.ui.InventoryTransactionBrowser;
 
-public class ExpenseTransactionBrowserAction extends AbstractAction {
+public class InventoryTransactionBrowserAction extends AbstractAction {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 2530040256060749499L;
 
-	public ExpenseTransactionBrowserAction() {
-		super("Expense Transaction Browser");
+	public InventoryTransactionBrowserAction() {
+		super("Inventory Transaction Browser");
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		BackOfficeWindow window = BackOfficeWindow.getInstance();
 		JTabbedPane tabbedPane = window.getTabbedPane();
 
-		ExpenseTransactionBrowser browser = null;
+		InventoryTransactionBrowser browser = null;
 
-		int index = tabbedPane.indexOfTab("Expense Transaction Browser");
+		int index = tabbedPane.indexOfTab("Inventory Transaction Browser");
 		if (index == -1) {
-			browser = new ExpenseTransactionBrowser();
-			tabbedPane.addTab("Expense Transaction Browser", browser);
+			browser = new InventoryTransactionBrowser();
+			tabbedPane.addTab("Inventory Transaction Browser", browser);
 			browser.loadData();
 			browser.refreshUITable();
 		} else {
-			browser = (ExpenseTransactionBrowser) tabbedPane.getComponentAt(index);
+			browser = (InventoryTransactionBrowser) tabbedPane.getComponentAt(index);
 		}
 
 		tabbedPane.setSelectedComponent(browser);

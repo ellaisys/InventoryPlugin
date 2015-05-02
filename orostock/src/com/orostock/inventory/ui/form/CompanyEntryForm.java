@@ -116,7 +116,7 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 
 		this.table = new JTable(new CompanyDetailModel());
 		CompanyDetailModel tableModel = (CompanyDetailModel) this.table.getModel();
-		tableModel.setPageSize(70);
+		tableModel.setPageSize(30);
 		JScrollPane jsp = new JScrollPane(this.table);
 		jsp.setPreferredSize(new Dimension(500, 200));
 		this.mainPanel.add(jsp, "cell 1 20");

@@ -1,5 +1,6 @@
 package com.orostock.inventory.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -26,7 +27,16 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		super(itForm);
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
-		init(new InventoryTransactionTableModel());
+		init(new InventoryTransactionTableModel(), new Dimension(450, 400), new Dimension(500, 400));
+		Dimension tableSize = new Dimension(450, 400);
+		browserTable.getColumn("DATE").setPreferredWidth(80);
+		browserTable.getColumn("TYPE").setPreferredWidth(20);
+		browserTable.getColumn("QTY").setPreferredWidth(50);
+		browserTable.getColumn("ITEM").setPreferredWidth(120);
+		browserTable.getColumn("AMOUNT").setPreferredWidth(40);
+		browserTable.getColumn("VAT").setPreferredWidth(20);
+		browserTable.getColumn("CREDIT").setPreferredWidth(10);
+		browserTable.getColumn("WAREHOUSE").setPreferredWidth(80);
 		hideDeleteBtn();
 		hideNewBtn();
 		itForm.setFieldsEnable(false);
@@ -37,20 +47,24 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		List<InventoryTransaction> expense = InventoryTransactionDAO.getInstance().findByCurrentMonth();
 		InventoryTransactionTableModel tableModel = (InventoryTransactionTableModel) this.browserTable.getModel();
 		tableModel.setRows(expense);
-		tableModel.setPageSize(25);
 	}
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
+	}
+
+	public void refreshUITable() {
+		super.refreshTable();
 	}
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
+		itForm.setFieldsEnable(false);
 		InventoryTransaction bean = (InventoryTransaction) this.beanEditor.getBean();
 		if ((bean != null) && (bean.getInventoryItem() != null)) {
-			itForm.setInventoryItem(bean.getInventoryItem());
 			itForm.setNewTransaction(false);
-
+			itForm.setInventoryItem(bean.getInventoryItem());
 		}
 	}
 
@@ -71,7 +85,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		private static final long serialVersionUID = 6168307011011117975L;
 
 		public InventoryTransactionTableModel() {
-			super(new String[] { "DATE", "TYPE", "QTY", "ITEM", "AMOUNT", "VAT", "DISTRIBUTOR", "CREDIT", "WAREHOUSE" });
+			super(new String[] { "DATE", "TYPE", "QTY", "ITEM", "AMOUNT", "VAT", "CREDIT", "WAREHOUSE" });
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -99,7 +113,15 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 					return "";
 				}
 			case 2:
-				return row.getQuantity();
+				if (row.getInventoryItem() != null && row.getInventoryItem().getPackagingUnit() != null) {
+					if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.MOVEMENT) {
+						return row.getQuantity() + " " + row.getInventoryItem().getPackagingUnit().getName();
+					} else {
+						return row.getQuantity() + " " + row.getInventoryItem().getPackagingUnit().getRecepieUnitName();
+					}
+				} else {
+					return "";
+				}
 			case 3:
 				if (row.getInventoryItem() != null) {
 					return row.getInventoryItem().getName();
@@ -107,32 +129,28 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 					return "";
 				}
 			case 4:
-				return row.getTotalPrice();
+				if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
+					return "₹" + row.getTotalPrice();
+				} else {
+					return "-";
+				}
 			case 5:
-				return row.getVatPaid();
+				if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
+					return row.getVatPaid().getRate() + " %";
+				} else {
+					return "-";
+				}
 			case 6:
-				if (row.getInventoryVendor() != null) {
-					if (inOutEnum == InOutEnum.IN) {
-						return row.getInventoryVendor().getName();
-					} else if (inOutEnum == InOutEnum.OUT) {
-						return row.getInventoryVendor().getName();
-					} else if (inOutEnum == InOutEnum.MOVEMENT) {
-						return "";
-					} else if (inOutEnum == InOutEnum.ADJUSTMENT) {
-						return "";
-					} else if (inOutEnum == InOutEnum.WASTAGE) {
-						return "";
+				if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
+					if (row.isCreditCheck()) {
+						return "T";
 					} else {
-						return "";
+						return "F";
 					}
+				} else {
+					return "-";
 				}
 			case 7:
-				if (row.isCreditCheck()) {
-					return "T";
-				} else {
-					return "F";
-				}
-			case 8:
 				if (inOutEnum == InOutEnum.IN) {
 					return row.getInventoryWarehouseByToWarehouseId().getName();
 				} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE) {

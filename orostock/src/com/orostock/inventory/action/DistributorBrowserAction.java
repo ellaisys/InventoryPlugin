@@ -29,6 +29,7 @@ public class DistributorBrowserAction extends AbstractAction {
 			browser = new DistributorBrowser();
 			tabbedPane.addTab("Distributor Browser", browser);
 			browser.loadData();
+			browser.refreshUITable();
 		} else {
 			browser = (DistributorBrowser) tabbedPane.getComponentAt(index);
 			browser.clearTableModel();

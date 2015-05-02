@@ -26,6 +26,7 @@ public class InventoryItemBrowserAction extends AbstractAction {
 			browser = new InventoryItemBrowser();
 			tabbedPane.addTab("Inventory Item Browser", browser);
 			browser.loadData();
+			browser.refreshUITable();
 		} else {
 			browser = (InventoryItemBrowser) tabbedPane.getComponentAt(index);
 		}

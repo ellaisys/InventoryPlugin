@@ -1,5 +1,6 @@
 package com.orostock.inventory.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -23,9 +24,10 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 
 	public CompanyBrowser() {
 		super(cf);
+		cf.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
-		init(new CompanyTableModel());
+		init(new CompanyTableModel(), new Dimension(300, 400), new Dimension(650, 400));
 		cf.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();
@@ -35,11 +37,14 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 		List<Company> company = CompanyDAO.getInstance().findAll();
 		CompanyTableModel tableModel = (CompanyTableModel) this.browserTable.getModel();
 		tableModel.setRows(company);
-		tableModel.setPageSize(25);
 	}
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
+	}
+
+	public void refreshUITable() {
 		super.refreshTable();
 	}
 
@@ -51,6 +56,7 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
+		cf.setFieldsEnable(false);
 	}
 
 	protected void searchCompany() {

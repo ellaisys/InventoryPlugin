@@ -30,6 +30,7 @@ public class CompanyBrowserAction extends AbstractAction {
 			browser = new CompanyBrowser();
 			tabbedPane.addTab("Company Browser", browser);
 			browser.loadData();
+			browser.refreshUITable();
 		} else {
 			browser = (CompanyBrowser) tabbedPane.getComponentAt(index);
 		}

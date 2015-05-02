@@ -51,6 +51,7 @@ import com.floreantpos.swing.FixedLengthTextField;
 import com.floreantpos.swing.IntegerTextField;
 import com.floreantpos.swing.ListComboBoxModel;
 import com.floreantpos.ui.BeanEditor;
+import com.floreantpos.ui.dialog.BeanEditorDialog;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
 public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
@@ -84,6 +85,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	private JLabel packSizeLabel;
 	private JLabel optionLabel;
 	private HashSet<ItemCompVendPack> tbd;
+	private final JButton btnNewGroup = new JButton("New Group");
 
 	public InventoryItemEntryForm() {
 		createUI();
@@ -132,6 +134,12 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.cbVendor.setSelectedIndex(-1);
 		this.cbCompany.setSelectedIndex(-1);
 		this.cbPackSize.setSelectedIndex(-1);
+		this.cbPackagingUnit.setSelectedIndex(-1);
+		clearTableModel();
+	}
+
+	public void setFieldsEnableEdit(boolean enable) {
+		this.cbPackagingUnit.setEnabled(enable);
 	}
 
 	public void setFieldsEnable(boolean enable) {
@@ -157,6 +165,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.btnAdd.setEnabled(enable);
 		this.btnDel.setEnabled(enable);
 		this.table.setEnabled(enable);
+		this.btnNewGroup.setEnabled(enable);
 	}
 
 	private void createUI() {
@@ -177,6 +186,12 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.mainPanel.add(this.tfPackSizeReplenishLevel, "cell 1 7");
 		this.mainPanel.add(groupLabel = new JLabel("Group"), "cell 0 13,alignx trailing");
 		this.mainPanel.add(this.cbGroup, "cell 1 13");
+		this.btnNewGroup.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				InventoryItemEntryForm.this.createNewGroup();
+			}
+		});
+		this.mainPanel.add(this.btnNewGroup, "cell 3 13,growx");
 
 		JPanel hPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		JPanel hPanel1 = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -257,6 +272,21 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		jsp.setPreferredSize(new Dimension(500, 200));
 		this.mainPanel.add(jsp, "cell 1 30 3 3");
 		this.mainPanel.add(btnDel, "cell 1 35 2 1");
+	}
+
+	protected void createNewGroup() {
+		InventoryGroupEntryForm form = new InventoryGroupEntryForm(new InventoryGroup());
+		BeanEditorDialog dialog = new BeanEditorDialog(form, BackOfficeWindow.getInstance(), true);
+		dialog.pack();
+		dialog.open();
+		if (dialog.isCanceled()) {
+			return;
+		}
+
+		InventoryGroup inventoryGroup = (InventoryGroup) form.getBean();
+		DefaultComboBoxModel<InventoryGroup> cbModel = (DefaultComboBoxModel) this.cbGroup.getModel();
+		cbModel.addElement(inventoryGroup);
+		cbModel.setSelectedItem(inventoryGroup);
 	}
 
 	protected void deleteSelectedTuple() {
@@ -464,6 +494,13 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		if (inventoryItem.getId() != null) {
 			List<ItemCompVendPack> tuple = ItemCompVendPackDAO.getInstance().findAllByInventoryItem(inventoryItem);
 			tableModel.setRows(tuple);
+		}
+	}
+
+	public void clearTableModel() {
+		if (this.table != null && this.table.getModel() != null) {
+			InventoryItemDetailModel tableModel = (InventoryItemDetailModel) this.table.getModel();
+			tableModel.setRows(null);
 		}
 	}
 

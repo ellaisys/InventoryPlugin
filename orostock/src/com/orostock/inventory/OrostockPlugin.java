@@ -12,26 +12,30 @@ import com.orostock.inventory.action.DistributorBrowserAction;
 import com.orostock.inventory.action.ExpenseTransactionBrowserAction;
 import com.orostock.inventory.action.ExpenseVendorBrowserAction;
 import com.orostock.inventory.action.InventoryItemBrowserAction;
+import com.orostock.inventory.action.InventoryTransactionBrowserAction;
 import com.orostock.inventory.action.PackagingUnitBrowserAction;
 import com.orostock.inventory.action.PersonBrowserAction;
-import com.orostock.inventory.ui.InventoryTransactionBrowserAction;
 import com.orostock.inventory.ui.recepie.RecepieView;
 
 @PluginImplementation
 public class OrostockPlugin implements InventoryPlugin {
-	public AbstractAction[] getActions() {
-		return new AbstractAction[] { 
-				new InventoryItemBrowserAction(), 
-				new ExpenseVendorBrowserAction(), 
-				new DistributorBrowserAction(), 
-				new ExpenseTransactionBrowserAction(),
-				new InventoryTransactionBrowserAction() };
-	}
-
-	public AbstractAction[] getBrowserActions() {
+	public AbstractAction[] getInventoryActions() {
 		return new AbstractAction[] { 
 				new PackagingUnitBrowserAction(), 
+				new InventoryItemBrowserAction(), 
+				new InventoryTransactionBrowserAction() };
+	}
+	
+	public AbstractAction[] getExpenseActions() {
+		return new AbstractAction[] { 
+				new ExpenseVendorBrowserAction(), 
+				new ExpenseTransactionBrowserAction()};
+	}
+
+	public AbstractAction[] getEntityActions() {
+		return new AbstractAction[] { 
 				new PersonBrowserAction(), 
+				new DistributorBrowserAction(), 
 				new CompanyBrowserAction() };
 	}
 

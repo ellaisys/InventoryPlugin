@@ -29,6 +29,7 @@ public class ExpenseVendorBrowserAction extends AbstractAction {
 			browser = new ExpenseVendorBrowser();
 			tabbedPane.addTab("Expense Vendor Browser", browser);
 			browser.loadData();
+			browser.refreshUITable();
 		} else {
 			browser = (ExpenseVendorBrowser) tabbedPane.getComponentAt(index);
 		}

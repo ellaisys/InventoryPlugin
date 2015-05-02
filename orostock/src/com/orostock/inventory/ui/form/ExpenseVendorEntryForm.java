@@ -111,7 +111,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 
 		this.table = new JTable(new InventoryVendorDetailModel());
 		InventoryVendorDetailModel tableModel = (InventoryVendorDetailModel) this.table.getModel();
-		tableModel.setPageSize(70);
+		tableModel.setPageSize(30);
 		JScrollPane jsp = new JScrollPane(this.table);
 		jsp.setPreferredSize(new Dimension(500, 200));
 		this.mainPanel.add(jsp, "cell 1 20");

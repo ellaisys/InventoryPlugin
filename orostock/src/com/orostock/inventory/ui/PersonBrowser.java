@@ -1,5 +1,6 @@
 package com.orostock.inventory.ui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class PersonBrowser extends ModelBrowser<Person> {
 		super(pf);
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
-		init(new PersonTableModel());
+		init(new PersonTableModel(), new Dimension(450, 400), new Dimension(400, 400));
 		pf.setFieldsEnable(false);
 		hideDeleteBtn();
 	}
@@ -34,12 +35,15 @@ public class PersonBrowser extends ModelBrowser<Person> {
 		List<Person> person = PersonDAO.getInstance().findAll();
 		PersonTableModel tableModel = (PersonTableModel) this.browserTable.getModel();
 		tableModel.setRows(person);
-		tableModel.setPageSize(25);
-
 	}
 
 	public void refreshTable() {
 		loadData();
+		super.refreshTable();
+	}
+
+	public void refreshUITable() {
+		super.refreshTable();
 	}
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
@@ -50,6 +54,7 @@ public class PersonBrowser extends ModelBrowser<Person> {
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
+		pf.setFieldsEnable(false);
 	}
 
 	protected void searchPerson() {
