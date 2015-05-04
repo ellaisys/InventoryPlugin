@@ -1,6 +1,5 @@
 package com.orostock.inventory.ui;
 
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.text.SimpleDateFormat;
@@ -8,7 +7,6 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
 
 import com.floreantpos.bo.ui.BackOfficeWindow;
@@ -35,13 +33,14 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
 		this.btnNewExpense.setEnabled(true);
 		init(new ExpenseTransactionTableModel(), new Dimension(400, 400), new Dimension(550, 400));
-		Component[] components = this.browserPanel.getComponents();
-		for (Component c : components) {
-			if (c instanceof JScrollPane) {
-				c.setPreferredSize((new Dimension(650, 400)));
-			}
-		}
-		et.setPreferredSize((new Dimension(300, 400)));
+		// "DATE", "TYPE", "HEAD", "VENDOR", "AMOUNT", "VAT", "CREDIT"
+		browserTable.getColumn("DATE").setPreferredWidth(70);
+		browserTable.getColumn("TYPE").setPreferredWidth(70);
+		browserTable.getColumn("HEAD").setPreferredWidth(70);
+		browserTable.getColumn("VENDOR").setPreferredWidth(120);
+		browserTable.getColumn("AMOUNT").setPreferredWidth(40);
+		browserTable.getColumn("VAT").setPreferredWidth(20);
+		browserTable.getColumn("CREDIT").setPreferredWidth(10);
 		this.invalidate();
 		hideDeleteBtn();
 		hideNewBtn();
@@ -110,7 +109,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		private static final long serialVersionUID = -2312553573667836103L;
 
 		public ExpenseTransactionTableModel() {
-			super(new String[] { "TYPE", "DATE", "VENDOR", "AMOUNT", "VAT", "CREDIT" });
+			super(new String[] { "DATE", "TYPE", "HEAD", "VENDOR", "AMOUNT", "VAT", "CREDIT" });
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -118,31 +117,36 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 			try {
 				switch (columnIndex) {
 				case 0:
-					if (row.getExpenseTransactionType() != null) {
-						return row.getExpenseTransactionType().getName();
-					} else {
-						return "";
-					}
-
-				case 1:
 					if (row.getTransactionDate() != null) {
 						SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yy HH:mm");
 						return simpleDateFormat.format(row.getTransactionDate());
 					} else {
 						return "";
 					}
+				case 1:
+					if (row.getExpenseTransactionType() != null) {
+						return row.getExpenseTransactionType().getName();
+					} else {
+						return "";
+					}
 				case 2:
+					if (row.getExpenseHead() != null) {
+						return row.getExpenseHead().getName();
+					} else {
+						return "";
+					}
+				case 3:
 					if (row.getInventoryVendor().getName() != null) {
 						return row.getInventoryVendor().getName();
 					} else {
 						return "";
 					}
-				case 3:
-					return row.getAmount();
-
 				case 4:
-					return row.getVatPaid();
+					return "₹" + formatDouble(row.getAmount());
+
 				case 5:
+					return formatDouble(row.getVatPaid().getRate()) + " %";
+				case 6:
 					if (row.isCreditCheck()) {
 						return "T";
 					} else {
@@ -154,6 +158,5 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 			}
 			return null;
 		}
-
 	}
 }

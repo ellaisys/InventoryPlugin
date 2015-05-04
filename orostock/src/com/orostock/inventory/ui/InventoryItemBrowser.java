@@ -125,7 +125,6 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			Double cafeRcpQty = 0.0d;
 			Double godownRcpQty = 0.0d;
 			if (listItems != null && listItems.size() == 2) {
-
 				cafeRcpQty = listItems.get(0).getTotalRecepieUnits();
 				godownRcpQty = listItems.get(1).getTotalRecepieUnits();
 			}
@@ -133,19 +132,26 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			case 0:
 				return row.getName();
 			case 1:
-				if (cafeRcpQty <= row.getPackageReplenishLevel()) {
-					return new InventoryLevel(this.f.format(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.YELLOW);
+				if (row.getPackageReplenishLevel() == -100) {
+					return new InventoryLevel("NA", Color.GRAY);
 				} else {
-					return new InventoryLevel(this.f.format(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
-
+					if (cafeRcpQty <= row.getPackageReplenishLevel()) {
+						return new InventoryLevel(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.YELLOW);
+					} else {
+						return new InventoryLevel(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
+					}
 				}
 			case 2:
-				if (godownRcpQty <= row.getPackageReorderLevel()) {
-					return new InventoryLevel(this.f.format(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.PINK);
+				if (row.getPackageReorderLevel() == -100) {
+					return new InventoryLevel("NA", Color.GRAY);
 				} else {
-					return new InventoryLevel(this.f.format(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
-
+					if (godownRcpQty <= row.getPackageReorderLevel()) {
+						return new InventoryLevel(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.PINK);
+					} else {
+						return new InventoryLevel(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
+					}
 				}
+
 			}
 			return row.getName();
 		}

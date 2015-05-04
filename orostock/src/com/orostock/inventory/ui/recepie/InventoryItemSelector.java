@@ -11,6 +11,8 @@ import javax.swing.JPanel;
 
 import net.miginfocom.swing.MigLayout;
 
+import org.jdesktop.swingx.JXComboBox;
+
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.model.InventoryItem;
 import com.floreantpos.model.dao.InventoryItemDAO;
@@ -18,10 +20,9 @@ import com.floreantpos.model.util.IllegalModelStateException;
 import com.floreantpos.swing.DoubleTextField;
 import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
-import com.jidesoft.swing.AutoCompletionComboBox;
 
 public class InventoryItemSelector extends BeanEditorDialog {
-	AutoCompletionComboBox comboBox = new AutoCompletionComboBox();
+	JXComboBox comboBox = new JXComboBox();
 	DoubleTextField tfQty = new DoubleTextField(5);
 	JLabel quantityLabel = new JLabel("Quantity in");
 	InventoryItem selectedItem;
@@ -94,7 +95,7 @@ public class InventoryItemSelector extends BeanEditorDialog {
 		}
 
 		public void actionPerformed(ActionEvent arg0) {
-			InventoryItem item = (InventoryItem) ((AutoCompletionComboBox) arg0.getSource()).getSelectedItem();
+			InventoryItem item = (InventoryItem) ((JXComboBox) arg0.getSource()).getSelectedItem();
 			quantityLabel.setText("Quantity in " + item.getPackagingUnit().getRecepieUnitName());
 		}
 	}

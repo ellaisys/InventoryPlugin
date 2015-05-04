@@ -453,7 +453,6 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 				}
 				if (actionPerformed) {
 					tx.commit();
-					POSMessageDialog.showMessage(BackOfficeWindow.getInstance(), "Item Saved!!");
 				} else {
 					tx.rollback();
 					return false;

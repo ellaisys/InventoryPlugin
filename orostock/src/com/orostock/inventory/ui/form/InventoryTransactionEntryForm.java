@@ -133,6 +133,11 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			transactionType.setInOrOutEnum(InOutEnum.MOVEMENT);
 			InventoryTransactionTypeDAO.getInstance().save(transactionType);
 
+			transactionType = new InventoryTransactionType();
+			transactionType.setName("SELF CONSUMPTION");
+			transactionType.setInOrOutEnum(InOutEnum.SELF_CONSUMPTION);
+			InventoryTransactionTypeDAO.getInstance().save(transactionType);
+
 			transactionTypes = InventoryTransactionTypeDAO.getInstance().findAll();
 		}
 
@@ -451,6 +456,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					break;
 				case ADJUSTMENT:
 				case WASTAGE:
+				case SELF_CONSUMPTION:
 					InventoryWarehouseItemDAO dao3 = InventoryWarehouseItemDAO.getInstance();
 					InventoryWarehouseItem inventoryWarehouseItem3 = null;
 					if (dao3 != null) {
@@ -537,7 +543,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			InOutEnum inOutEnum = InOutEnum.fromInt(transaction.getInventoryTransactionType().getInOrOut().intValue());
 			if (inOutEnum == InOutEnum.IN) {
 				this.inWareHouse.setSelectedItem(transaction.getInventoryWarehouseByToWarehouseId());
-			} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE) {
+			} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE || inOutEnum == InOutEnum.SELF_CONSUMPTION) {
 				this.outWareHouse.setSelectedItem(transaction.getInventoryWarehouseByFromWarehouseId());
 			} else if (inOutEnum == InOutEnum.MOVEMENT) {
 				this.inWareHouse.setSelectedItem(transaction.getInventoryWarehouseByToWarehouseId());
@@ -636,6 +642,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			break;
 		case ADJUSTMENT:
 		case WASTAGE:
+		case SELF_CONSUMPTION:
 			transaction.setInventoryWarehouseByFromWarehouseId((InventoryWarehouse) this.outWareHouse.getSelectedItem());
 			transaction.setTotalPrice(0.0d);
 			transaction.setInventoryVendor(null);
@@ -723,6 +730,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			break;
 		case ADJUSTMENT:
 		case WASTAGE:
+		case SELF_CONSUMPTION:
 			this.cbVendor.setVisible(false);
 			this.vendorLabel.setVisible(false);
 			this.cbPackSize.setVisible(false);

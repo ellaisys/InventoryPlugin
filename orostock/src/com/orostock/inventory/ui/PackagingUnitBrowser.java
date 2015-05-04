@@ -72,7 +72,7 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 			case 1:
 				return row.getRecepieUnitName();
 			case 2:
-				return row.getFactor();
+				return formatDouble(row.getFactor());
 			}
 			return row.getName();
 		}

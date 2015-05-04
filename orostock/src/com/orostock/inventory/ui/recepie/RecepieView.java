@@ -33,6 +33,8 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 
 	public RecepieView(MenuItem m) {
 		recepieItemTable = new JTable(new RecepieItemTableModel());
+		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable.getModel();
+		model.setPageSize(100);
 		initView(m);
 		setLayout(new BorderLayout());
 		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -59,7 +61,6 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		buttonPanel.add(this.btnDeleteItem);
 		add(new JScrollPane(recepieItemTable));
 		add(buttonPanel, "South");
-
 	}
 
 	protected void addInventoryItem() {
@@ -78,6 +79,12 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		model.addItem(item);
 		recepieItemTable.invalidate();
 
+	}
+
+	public void setFieldsEnable(boolean enable) {
+		this.recepieItemTable.setEnabled(enable);
+		this.btnAddItem.setEnabled(enable);
+		this.btnDeleteItem.setEnabled(enable);
 	}
 
 	public boolean updateModel(MenuItem e) {
@@ -122,9 +129,10 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 	}
 
 	public void initView(MenuItem e) {
-		if (this.inited)
+		if (this.inited) {
 			return;
-
+		}
+		// setFieldsEnable(false);
 		Recepie recepie = e.getRecepie();
 		if (recepie == null)
 			return;
@@ -132,8 +140,26 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		List<RecepieItem> items = new ArrayList<RecepieItem>(recepie.getRecepieItems());
 		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable.getModel();
 		model.setRows(items);
-
 		this.inited = true;
+	}
+
+	public void updateView(MenuItem e) {
+		Recepie recepie = e.getRecepie();
+		if (recepie == null)
+			return;
+
+		List<RecepieItem> items = new ArrayList<RecepieItem>(recepie.getRecepieItems());
+		if (this.recepieItemTable != null && this.recepieItemTable.getModel() != null) {
+			RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable.getModel();
+			model.setRows(items);
+		}
+	}
+
+	public void clearTableModel() {
+		if (this.recepieItemTable != null && this.recepieItemTable.getModel() != null) {
+			RecepieItemTableModel tableModel = (RecepieItemTableModel) this.recepieItemTable.getModel();
+			tableModel.setRows(null);
+		}
 	}
 
 	public static class RecepieItemTableModel extends ListTableModel<RecepieItem> {
@@ -153,7 +179,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 			case 0:
 				return item.getInventoryItem().getName();
 			case 1:
-				return item.getPercentage();
+				return formatDouble(item.getPercentage());
 			case 2:
 				return item.getInventoryItem().getPackagingUnit().getRecepieUnitName();
 			}
