@@ -2,6 +2,8 @@ package com.orostock.inventory.ui;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -14,6 +16,7 @@ import com.floreantpos.bo.ui.Command;
 import com.floreantpos.bo.ui.ModelBrowser;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.InOutEnum;
+import com.floreantpos.model.InventoryItem;
 import com.floreantpos.model.InventoryTransaction;
 import com.floreantpos.model.dao.InventoryTransactionDAO;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
@@ -24,11 +27,10 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 	 * 
 	 */
 	private static final long serialVersionUID = -4133361713025286200L;
-	private static InventoryTransactionEntryForm itForm = new InventoryTransactionEntryForm();
 	private JButton btnNewTrans = new JButton("NEW TRANSACTION");
 
 	public InventoryTransactionBrowser() {
-		super(itForm);
+		super(new InventoryTransactionEntryForm());
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewTrans.setActionCommand(Command.NEW_TRANSACTION.name());
@@ -44,7 +46,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		browserTable.getColumn("WAREHOUSE").setPreferredWidth(80);
 		hideDeleteBtn();
 		hideNewBtn();
-		itForm.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		refreshTable();
 	}
 
@@ -69,12 +71,29 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
-		itForm.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		InventoryTransaction bean = (InventoryTransaction) this.beanEditor.getBean();
 		if ((bean != null) && (bean.getInventoryItem() != null)) {
 			this.btnNewTrans.setEnabled(true);
-			itForm.setNewTransaction(false);
-			itForm.setInventoryItem(bean.getInventoryItem());
+			Method m;
+			Method m1;
+			try {
+				m = Class.forName("com.orostock.inventory.ui.form.InventoryTransactionEntryForm").getMethod("setNewTransaction", Boolean.class);
+				m1 = Class.forName("com.orostock.inventory.ui.form.InventoryTransactionEntryForm").getMethod("setInventoryItem", InventoryItem.class);
+				m.invoke(beanEditor, false);
+				m1.invoke(beanEditor, false);
+			} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e1) {
+
+				e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+				e1.printStackTrace();
+			} catch (IllegalArgumentException e1) {
+				e1.printStackTrace();
+			} catch (InvocationTargetException e1) {
+				e1.printStackTrace();
+			}
+			// itForm.setNewTransaction(false);
+			// itForm.setInventoryItem(bean.getInventoryItem());
 		} else
 			this.btnNewTrans.setEnabled(false);
 	}
@@ -82,7 +101,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
 		InventoryTransaction bean = (InventoryTransaction) this.beanEditor.getBean();
 		if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
-			itForm.setFieldsEnableAfterEdit();
+			beanEditor.setFieldsEnableEdit();
 		} else if (e.getActionCommand().equalsIgnoreCase(Command.NEW_TRANSACTION.name())) {
 			InventoryTransactionEntryForm form = new InventoryTransactionEntryForm();
 			form.setBean(new InventoryTransaction());
@@ -135,7 +154,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 					return "ADJ";
 				} else if (inOutEnum == InOutEnum.WASTAGE) {
 					return "WST";
-				} else if (inOutEnum == InOutEnum.SELF_CONSUMPTION) {
+				} else if (inOutEnum == InOutEnum.CONSUMPTION) {
 					return "SELF";
 				} else {
 					return "";
@@ -181,7 +200,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 			case 7:
 				if (inOutEnum == InOutEnum.IN) {
 					return row.getInventoryWarehouseByToWarehouseId().getName();
-				} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE || inOutEnum == InOutEnum.SELF_CONSUMPTION) {
+				} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE || inOutEnum == InOutEnum.CONSUMPTION) {
 					return row.getInventoryWarehouseByFromWarehouseId().getName();
 				} else if (inOutEnum == InOutEnum.MOVEMENT) {
 					return row.getInventoryWarehouseByFromWarehouseId().getName() + " -> " + row.getInventoryWarehouseByToWarehouseId().getName();

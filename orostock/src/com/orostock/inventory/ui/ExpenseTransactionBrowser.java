@@ -2,6 +2,8 @@ package com.orostock.inventory.ui;
 
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -14,6 +16,7 @@ import com.floreantpos.bo.ui.Command;
 import com.floreantpos.bo.ui.ModelBrowser;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.ExpenseTransaction;
+import com.floreantpos.model.InventoryVendor;
 import com.floreantpos.model.dao.ExpenseTransactionDAO;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
 import com.orostock.inventory.ui.form.ExpenseTransactionEntryForm;
@@ -23,11 +26,10 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 	 * 
 	 */
 	private static final long serialVersionUID = -4133361713025286200L;
-	private static ExpenseTransactionEntryForm et = new ExpenseTransactionEntryForm();
 	private JButton btnNewExpense = new JButton("NEW EXPENSE");
 
 	public ExpenseTransactionBrowser() {
-		super(et);
+		super(new ExpenseTransactionEntryForm());
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
@@ -44,7 +46,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		this.invalidate();
 		hideDeleteBtn();
 		hideNewBtn();
-		et.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		refreshTable();
 	}
 
@@ -70,7 +72,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
 		ExpenseTransaction bean = (ExpenseTransaction) this.beanEditor.getBean();
 		if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
-			et.setFieldsEnableEdit();
+			beanEditor.setFieldsEnableEdit();
 		} else if (e.getActionCommand().equalsIgnoreCase(Command.NEW_EXPENSE.name())) {
 			ExpenseTransactionEntryForm form = new ExpenseTransactionEntryForm();
 			form.setBean(new ExpenseTransaction());
@@ -90,11 +92,24 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
-		et.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		ExpenseTransaction bean = (ExpenseTransaction) this.beanEditor.getBean();
 		if ((bean != null) && (bean.getInventoryVendor() != null)) {
 			this.btnNewExpense.setEnabled(true);
-			et.setInventoryVendor(bean.getInventoryVendor());
+			Method m;
+			try {
+				m = Class.forName("com.orostock.inventory.ui.form.ExpenseTransactionEntryForm").getMethod("setInventoryVendor", InventoryVendor.class);
+				m.invoke(beanEditor, false);
+			} catch (NoSuchMethodException | SecurityException | ClassNotFoundException e1) {
+				e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+				e1.printStackTrace();
+			} catch (IllegalArgumentException e1) {
+				e1.printStackTrace();
+			} catch (InvocationTargetException e1) {
+				e1.printStackTrace();
+			}
+			// et.setInventoryVendor(bean.getInventoryVendor());
 		} else
 			this.btnNewExpense.setEnabled(false);
 	}

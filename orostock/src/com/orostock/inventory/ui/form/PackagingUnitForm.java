@@ -107,4 +107,10 @@ public class PackagingUnitForm extends BeanEditor<PackagingUnit> {
 	public String getDisplayText() {
 		return "Add/Edit packaing unit";
 	}
+
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
+	}
 }

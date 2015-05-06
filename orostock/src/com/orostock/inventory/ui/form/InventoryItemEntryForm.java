@@ -123,6 +123,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		inventoryItem.setSortOrder(0);
 		inventoryItem.setPackageBarcode(null);
 		setBean(inventoryItem);
+		clearTableModel();
 	}
 
 	public void clearFields() {
@@ -138,8 +139,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		clearTableModel();
 	}
 
-	public void setFieldsEnableEdit(boolean enable) {
-		this.cbPackagingUnit.setEnabled(enable);
+	public void setFieldsEnableEdit() {
+		// this.cbPackagingUnit.setEnabled(false);
 	}
 
 	public void setFieldsEnable(boolean enable) {
@@ -350,6 +351,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	}
 
 	public void updateView() {
+		populateComboBoxes();
 		InventoryItem inventoryItem = (InventoryItem) getBean();
 		if (inventoryItem == null) {
 			return;
@@ -407,10 +409,10 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 					if (item.getPackagingUnit() == null) {
 						actionPerformed = false;
 						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Packaging unit!!");
-					} else if (item.getPackageReorderLevel() < 0) {
+					} else if (item.getPackageReorderLevel() != -100 && item.getPackageReorderLevel() < 0) {
 						actionPerformed = false;
 						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Package Reorder Level!!");
-					} else if (item.getPackageReplenishLevel() < 0) {
+					} else if (item.getPackageReplenishLevel() != -100 && item.getPackageReplenishLevel() < 0) {
 						actionPerformed = false;
 						POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Package Replenish Level!!");
 					} else {

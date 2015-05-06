@@ -74,6 +74,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 		InventoryVendor inV = new InventoryVendor();
 		inV.setExpenseTypeVendor(true);
 		setBean(inV);
+		clearTableModel();
 	}
 
 	private void createUI() {
@@ -109,8 +110,8 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 		});
 		this.mainPanel.add(this.btnAdd, "cell 2 15");
 
-		this.table = new JTable(new InventoryVendorDetailModel());
-		InventoryVendorDetailModel tableModel = (InventoryVendorDetailModel) this.table.getModel();
+		this.table = new JTable(new ExpenseVendorDetailModel());
+		ExpenseVendorDetailModel tableModel = (ExpenseVendorDetailModel) this.table.getModel();
 		tableModel.setPageSize(30);
 		JScrollPane jsp = new JScrollPane(this.table);
 		jsp.setPreferredSize(new Dimension(500, 200));
@@ -126,7 +127,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 
 	protected void deleteSelectedPerson() {
 		if (this.table.getSelectedRow() >= 0) {
-			InventoryVendorDetailModel tableModel = (InventoryVendorDetailModel) this.table.getModel();
+			ExpenseVendorDetailModel tableModel = (ExpenseVendorDetailModel) this.table.getModel();
 			tbd.add(tableModel.getRowData(this.table.getSelectedRow()));
 			tableModel.deleteItem(this.table.getSelectedRow());
 		}
@@ -143,7 +144,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 			POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Person Name can not be empty!");
 		}
 		if (allSet) {
-			InventoryVendorDetailModel tableModel = (InventoryVendorDetailModel) this.table.getModel();
+			ExpenseVendorDetailModel tableModel = (ExpenseVendorDetailModel) this.table.getModel();
 			boolean flag = false;
 			if (tableModel.getRows() != null) {
 				for (VendorPerson vp1 : tableModel.getRows()) {
@@ -170,6 +171,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 		this.tfEmail.setText("");
 		this.taAddress.setText("");
 		this.cbPerson.setSelectedIndex(-1);
+		clearTableModel();
 	}
 
 	public void setFieldsEnable(boolean enable) {
@@ -253,7 +255,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 						dao.saveOrUpdate(vend);
 						actionPerformed = true;
 						VendorPersonDAO vpDao = VendorPersonDAO.getInstance();
-						InventoryVendorDetailModel tableModel = (InventoryVendorDetailModel) this.table.getModel();
+						ExpenseVendorDetailModel tableModel = (ExpenseVendorDetailModel) this.table.getModel();
 						if (tableModel.getRows() != null) {
 							for (VendorPerson ic : tableModel.getRows()) {
 								vpDao.saveOrUpdate(ic);
@@ -296,18 +298,18 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 
 	public void loadTableData() {
 		InventoryVendor comp = (InventoryVendor) getBean();
-		InventoryVendorDetailModel tableModel = (InventoryVendorDetailModel) this.table.getModel();
+		ExpenseVendorDetailModel tableModel = (ExpenseVendorDetailModel) this.table.getModel();
 		if (comp.getId() != null) {
 			List<VendorPerson> tuple = VendorPersonDAO.getInstance().findAllByVendor(comp);
 			tableModel.setRows(tuple);
 		}
 	}
 
-	static class InventoryVendorDetailModel extends ListTableModel<VendorPerson> {
+	static class ExpenseVendorDetailModel extends ListTableModel<VendorPerson> {
 
 		private static final long serialVersionUID = 7259163496906110603L;
 
-		public InventoryVendorDetailModel() {
+		public ExpenseVendorDetailModel() {
 			super(new String[] { "Person", "Designation", "Phone" });
 		}
 
@@ -328,7 +330,7 @@ public class ExpenseVendorEntryForm extends BeanEditor<InventoryVendor> {
 
 	public void clearTableModel() {
 		if (this.table != null && this.table.getModel() != null) {
-			InventoryVendorDetailModel tableModel = (InventoryVendorDetailModel) this.table.getModel();
+			ExpenseVendorDetailModel tableModel = (ExpenseVendorDetailModel) this.table.getModel();
 			tableModel.setRows(null);
 		}
 	}

@@ -166,6 +166,12 @@ public class InventoryLocationEntryForm extends BeanEditor<InventoryLocation> {
 	public String getDisplayText() {
 		return "Add inventory location";
 	}
+
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
+	}
 }
 
 /*

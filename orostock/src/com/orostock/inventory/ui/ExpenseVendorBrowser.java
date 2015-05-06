@@ -25,24 +25,23 @@ public class ExpenseVendorBrowser extends ModelBrowser<InventoryVendor> {
 	 */
 	private static final long serialVersionUID = -3216688728242415755L;
 	private JButton btnNewExpense = new JButton("NEW EXPENSE");
-	private static ExpenseVendorEntryForm ivf = new ExpenseVendorEntryForm();
 
 	public ExpenseVendorBrowser() {
-		super(ivf);
-		ivf.clearTableModel();
+		super(new ExpenseVendorEntryForm());
+		beanEditor.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
 		this.btnNewExpense.setEnabled(false);
-		init(new InventoryVendorTableModel(), new Dimension(300, 400), new Dimension(650, 400));
-		ivf.setFieldsEnable(false);
+		init(new ExpenseVendorTableModel(), new Dimension(300, 400), new Dimension(650, 400));
+		beanEditor.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();
 	}
 
 	public void loadData() {
 		List<InventoryVendor> inventoryVendors = InventoryVendorDAO.getInstance().findAllExpenseVendors(true);
-		InventoryVendorTableModel tableModel = (InventoryVendorTableModel) this.browserTable.getModel();
+		ExpenseVendorTableModel tableModel = (ExpenseVendorTableModel) this.browserTable.getModel();
 		tableModel.setRows(inventoryVendors);
 	}
 
@@ -82,7 +81,7 @@ public class ExpenseVendorBrowser extends ModelBrowser<InventoryVendor> {
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
-		ivf.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		InventoryVendor bean = (InventoryVendor) this.beanEditor.getBean();
 		if ((bean != null) && (bean.getId() != null)) {
 			this.btnNewExpense.setEnabled(true);
@@ -93,13 +92,13 @@ public class ExpenseVendorBrowser extends ModelBrowser<InventoryVendor> {
 	protected void searchInventoryVendor() {
 	}
 
-	static class InventoryVendorTableModel extends ListTableModel<InventoryVendor> {
+	static class ExpenseVendorTableModel extends ListTableModel<InventoryVendor> {
 		/**
 		 * 
 		 */
 		private static final long serialVersionUID = 8008682351957964208L;
 
-		public InventoryVendorTableModel() {
+		public ExpenseVendorTableModel() {
 			super(new String[] { "VENDOR NAME", "PHONE", "ADDRESS" });
 		}
 

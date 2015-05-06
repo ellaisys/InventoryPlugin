@@ -15,7 +15,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 
 import net.miginfocom.swing.MigLayout;
 
@@ -57,7 +56,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	 */
 	private static final long serialVersionUID = 2509122276993566916L;
 
-	private JTextField tfItem;
+	// private JTextField tfItem;
+	private JXComboBox cbItem;
 	private DoubleTextField tfTotalPrice;
 	private JXComboBox cbTransactionType;
 	private JXComboBox inWareHouse;
@@ -134,17 +134,47 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			InventoryTransactionTypeDAO.getInstance().save(transactionType);
 
 			transactionType = new InventoryTransactionType();
-			transactionType.setName("SELF CONSUMPTION");
-			transactionType.setInOrOutEnum(InOutEnum.SELF_CONSUMPTION);
+			transactionType.setName("CONSUMPTION");
+			transactionType.setInOrOutEnum(InOutEnum.CONSUMPTION);
 			InventoryTransactionTypeDAO.getInstance().save(transactionType);
 
 			transactionTypes = InventoryTransactionTypeDAO.getInstance().findAll();
 		}
 
 		this.cbTransactionType.setModel(new DefaultComboBoxModel(transactionTypes.toArray(new InventoryTransactionType[0])));
-		this.cbTransactionType.setSelectedIndex(1);
-		this.cbCompany.setSelectedIndex(-1);
+		this.cbTransactionType.setSelectedIndex(2);
 
+		List<InventoryItem> itemList = InventoryItemDAO.getInstance().findAll();
+		this.cbItem.setModel(new DefaultComboBoxModel(itemList.toArray(new InventoryItem[0])));
+
+		this.cbItem.setSelectedIndex(-1);
+		this.cbItem.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (InventoryTransactionEntryForm.this.newTransaction) {
+					JXComboBox combo = (JXComboBox) e.getSource();
+					InventoryItem item = (InventoryItem) combo.getSelectedItem();
+					if (item != null) {
+						cbCompany.removeAllItems();
+						cbVendor.removeAllItems();
+						cbPackSize.removeAllItems();
+						InventoryTransactionEntryForm.this.inventoryItem = item;
+						populateItemCompVend();
+						if (mapCompVend != null && !mapCompVend.isEmpty()) {
+							cbCompany.setModel(new DefaultComboBoxModel(mapCompVend.keySet().toArray(new Company[0])));
+						}
+						cbCompany.setSelectedIndex(-1);
+						cbCompany.setEnabled(true);
+						cbVendor.setEnabled(false);
+						cbPackSize.setEnabled(false);
+					}
+				}
+			}
+
+		});
+
+		this.cbCompany.setSelectedIndex(-1);
 		this.cbCompany.addActionListener(new ActionListener() {
 
 			@Override
@@ -155,7 +185,9 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					if (c != null) {
 						cbVendor.removeAllItems();
 						cbPackSize.removeAllItems();
-						cbVendor.setModel(new DefaultComboBoxModel(mapCompVend.get(c).toArray(new InventoryVendor[0])));
+						if (mapCompVend != null && !mapCompVend.isEmpty()) {
+							cbVendor.setModel(new DefaultComboBoxModel(mapCompVend.get(c).toArray(new InventoryVendor[0])));
+						}
 						cbVendor.setSelectedIndex(-1);
 						cbVendor.setEnabled(true);
 						cbPackSize.setEnabled(false);
@@ -177,7 +209,9 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					if (combo.getSelectedItem() != null) {
 						cbPackSize.removeAllItems();
 						Pair<InventoryVendor, Company> pair = Pair.of((InventoryVendor) cbVendor.getSelectedItem(), (Company) cbCompany.getSelectedItem());
-						cbPackSize.setModel(new DefaultComboBoxModel(mapCVPack.get(pair).toArray(new PackSize[0])));
+						if (mapCVPack != null && !mapCVPack.isEmpty()) {
+							cbPackSize.setModel(new DefaultComboBoxModel(mapCVPack.get(pair).toArray(new PackSize[0])));
+						}
 						cbPackSize.setSelectedIndex(-1);
 						cbPackSize.setEnabled(true);
 					}
@@ -222,9 +256,9 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		add(this.cbTransactionType, "wrap, w 150px");
 
 		add(this.itemLabel = new JLabel("Item"));
-		this.tfItem = new JTextField(20);
-		this.tfItem.setEnabled(false);
-		add(this.tfItem, "grow, wrap");
+		this.cbItem = new JXComboBox();
+		this.cbItem.setEnabled(true);
+		add(this.cbItem, "grow, wrap");
 
 		add(dateLabel = new JLabel("Date"));
 		this.datePicker = new DateTimePicker();
@@ -280,7 +314,12 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 
 	public void setInventoryItem(InventoryItem item) {
 		this.inventoryItem = item;
-		this.tfItem.setText(item.getName());
+		this.cbItem.setSelectedItem(item);
+		this.cbItem.setEnabled(false);
+		populateItemCompVend();
+	}
+
+	public void populateItemCompVend() {
 		icvpList = ItemCompVendPackDAO.getInstance().findAllByInventoryItem(this.inventoryItem);
 		mapCompVend = new HashMap<Company, HashSet<InventoryVendor>>();
 		mapCVPack = new HashMap<Pair<InventoryVendor, Company>, HashSet<PackSize>>();
@@ -301,12 +340,16 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 				}
 				mapCVPack.get(pair).add(icvp.getPackSize());
 			}
+
+			// if (isNewTransaction()) {
+			// this.cbItem.setSelectedIndex(-1);
+			// }
+
 			this.cbCompany.setModel(new DefaultComboBoxModel(mapCompVend.keySet().toArray(new Company[0])));
 			if (isNewTransaction()) {
 				this.cbCompany.setSelectedIndex(-1);
 			}
 		}
-
 	}
 
 	String formatDouble(double d) {
@@ -456,7 +499,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					break;
 				case ADJUSTMENT:
 				case WASTAGE:
-				case SELF_CONSUMPTION:
+				case CONSUMPTION:
 					InventoryWarehouseItemDAO dao3 = InventoryWarehouseItemDAO.getInstance();
 					InventoryWarehouseItem inventoryWarehouseItem3 = null;
 					if (dao3 != null) {
@@ -515,7 +558,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	}
 
 	public void clearFields() {
-		this.tfItem.setText("");
+		this.cbItem.setSelectedIndex(-1);
 		this.tfTotalPrice.setText("");
 		this.tfDiscount.setText("");
 		this.tfUnit.setText("");
@@ -527,7 +570,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.cbVendor.setSelectedIndex(-1);
 		this.cbCompany.setSelectedIndex(-1);
 		this.cbPackSize.setSelectedIndex(-1);
-		this.cbTransactionType.setSelectedIndex(1);
+		this.cbTransactionType.setSelectedIndex(2);
 	}
 
 	protected void updateView() {
@@ -536,14 +579,14 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			return;
 		}
 		if (transaction.getInventoryItem() != null) {
-			this.tfItem.setText(transaction.getInventoryItem().getName());
+			this.cbItem.setSelectedItem(transaction.getInventoryItem());
 		}
 		if (transaction.getInventoryTransactionType() != null) {
 			this.cbTransactionType.setSelectedItem(transaction.getInventoryTransactionType());
 			InOutEnum inOutEnum = InOutEnum.fromInt(transaction.getInventoryTransactionType().getInOrOut().intValue());
 			if (inOutEnum == InOutEnum.IN) {
 				this.inWareHouse.setSelectedItem(transaction.getInventoryWarehouseByToWarehouseId());
-			} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE || inOutEnum == InOutEnum.SELF_CONSUMPTION) {
+			} else if (inOutEnum == InOutEnum.OUT || inOutEnum == InOutEnum.ADJUSTMENT || inOutEnum == InOutEnum.WASTAGE || inOutEnum == InOutEnum.CONSUMPTION) {
 				this.outWareHouse.setSelectedItem(transaction.getInventoryWarehouseByFromWarehouseId());
 			} else if (inOutEnum == InOutEnum.MOVEMENT) {
 				this.inWareHouse.setSelectedItem(transaction.getInventoryWarehouseByToWarehouseId());
@@ -642,7 +685,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			break;
 		case ADJUSTMENT:
 		case WASTAGE:
-		case SELF_CONSUMPTION:
+		case CONSUMPTION:
 			transaction.setInventoryWarehouseByFromWarehouseId((InventoryWarehouse) this.outWareHouse.getSelectedItem());
 			transaction.setTotalPrice(0.0d);
 			transaction.setInventoryVendor(null);
@@ -661,7 +704,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	public void actionPerformed(ActionEvent arg0) {
 		System.out.println(arg0.paramString());
 		InventoryTransactionType type = (InventoryTransactionType) (((DefaultComboBoxModel<?>) ((JXComboBox) arg0.getSource()).getModel()).getSelectedItem());
-		this.tfItem.setVisible(true);
+		this.cbItem.setVisible(true);
 		this.itemLabel.setVisible(true);
 		this.cbTransactionType.setVisible(true);
 		this.transLabel.setVisible(true);
@@ -730,7 +773,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			break;
 		case ADJUSTMENT:
 		case WASTAGE:
-		case SELF_CONSUMPTION:
+		case CONSUMPTION:
 			this.cbVendor.setVisible(false);
 			this.vendorLabel.setVisible(false);
 			this.cbPackSize.setVisible(false);
@@ -746,14 +789,16 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.inWareHouse.setVisible(false);
 			this.outWareHouse.setVisible(true);
 			this.outWareHouseLabel.setVisible(true);
-			this.itemCountLabel.setText("Units (" + inventoryItem.getPackagingUnit().getRecepieUnitName() + ")");
+			if (inventoryItem != null && inventoryItem.getPackagingUnit() != null && inventoryItem.getPackagingUnit().getRecepieUnitName() != null) {
+				this.itemCountLabel.setText("Units (" + inventoryItem.getPackagingUnit().getRecepieUnitName() + ")");
+			}
 			break;
 		}
 
 	}
 
 	public void setFieldsEnable(boolean enable) {
-		this.tfItem.setEnabled(enable);
+		this.cbItem.setEnabled(enable);
 		this.tfTotalPrice.setEnabled(enable);
 		this.tfDiscount.setEnabled(enable);
 		this.cbVat.setEnabled(enable);
@@ -777,14 +822,21 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.creditCheck.setEnabled(enable);
 		this.cbCompany.setEnabled(enable);
 		this.packLabel.setEnabled(enable);
+		this.cbPackSize.setEnabled(enable);
 		this.discountLabel.setEnabled(enable);
 		this.companyLabel.setEnabled(enable);
 	}
 
-	public void setFieldsEnableAfterEdit() {
+	public void setFieldsEnableEdit() {
 		setFieldsEnable(false);
 		this.creditCheck.setEnabled(true);
 		this.noteLabel.setEnabled(true);
 		this.taNote.setEnabled(true);
+	}
+
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
 	}
 }

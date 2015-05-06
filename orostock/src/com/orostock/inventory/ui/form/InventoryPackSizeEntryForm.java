@@ -100,4 +100,10 @@ public class InventoryPackSizeEntryForm extends BeanEditor<PackSize> {
 		return false;
 	}
 
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
+	}
+
 }

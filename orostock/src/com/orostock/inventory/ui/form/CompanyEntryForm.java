@@ -204,6 +204,7 @@ public class CompanyEntryForm extends BeanEditor<Company> {
 	}
 
 	public void updateView() {
+		populateComboBoxes();
 		Company comp = (Company) getBean();
 		if (comp == null) {
 			return;

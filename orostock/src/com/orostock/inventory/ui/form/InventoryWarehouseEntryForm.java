@@ -99,6 +99,12 @@ public class InventoryWarehouseEntryForm extends BeanEditor<InventoryWarehouse> 
 
 		return false;
 	}
+
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
+	}
 }
 
 /*

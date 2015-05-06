@@ -19,15 +19,14 @@ public class DistributorBrowser extends ModelBrowser<InventoryVendor> {
 	 * 
 	 */
 	private static final long serialVersionUID = -3216688728242415755L;
-	private static DistributorEntryForm df = new DistributorEntryForm();
 
 	public DistributorBrowser() {
-		super(df);
-		df.clearTableModel();
+		super(new DistributorEntryForm());
+		beanEditor.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		init(new DistributorTableModel(), new Dimension(300, 400), new Dimension(650, 400));
-		df.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();
 	}
@@ -49,13 +48,13 @@ public class DistributorBrowser extends ModelBrowser<InventoryVendor> {
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
 		if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
-			df.setFieldsEnableEdit();
+			beanEditor.setFieldsEnableEdit();
 		}
 	}
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
-		df.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 	}
 
 	protected void searchInventoryVendor() {

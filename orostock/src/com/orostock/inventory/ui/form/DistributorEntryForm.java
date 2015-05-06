@@ -73,6 +73,7 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 		InventoryVendor inV = new InventoryVendor();
 		inV.setExpenseTypeVendor(false);
 		setBean(inV);
+		clearTableModel();
 	}
 
 	private void createUI() {
@@ -169,6 +170,7 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 		this.tfEmail.setText("");
 		this.taAddress.setText("");
 		this.cbPerson.setSelectedIndex(-1);
+		clearTableModel();
 	}
 
 	public void setFieldsEnable(boolean enable) {
@@ -198,6 +200,7 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 	}
 
 	public void updateView() {
+		populateComboBoxes();
 		InventoryVendor vend = (InventoryVendor) getBean();
 		if (vend == null) {
 			return;

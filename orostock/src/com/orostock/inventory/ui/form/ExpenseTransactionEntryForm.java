@@ -87,15 +87,21 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		this.cbTransactionType.setModel(new DefaultComboBoxModel(transactionTypes.toArray(new ExpenseTransactionType[0])));
 
 		List<ExpenseHead> heads = ExpenseHeadDAO.getInstance().findAll();
-		this.cbExHead.setModel(new DefaultComboBoxModel(heads.toArray(new ExpenseHead[0])));
-		cbExHead.setSelectedIndex(-1);
+		if (heads != null && !heads.isEmpty()) {
+			this.cbExHead.setModel(new DefaultComboBoxModel(heads.toArray(new ExpenseHead[0])));
+			cbExHead.setSelectedIndex(-1);
+		}
 
 		List<Tax> taxes = TaxDAO.getInstance().findAll();
-		this.cbVat.setModel(new DefaultComboBoxModel(taxes.toArray(new Tax[0])));
-		cbVat.setSelectedIndex(-1);
+		if (taxes != null && !taxes.isEmpty()) {
+			this.cbVat.setModel(new DefaultComboBoxModel(taxes.toArray(new Tax[0])));
+			cbVat.setSelectedIndex(-1);
+		}
 
 		List<InventoryVendor> vendors = InventoryVendorDAO.getInstance().findAllExpenseVendors(true);
-		this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new InventoryVendor[0])));
+		if (vendors != null && !vendors.isEmpty()) {
+			this.cbVendor.setModel(new DefaultComboBoxModel(vendors.toArray(new InventoryVendor[0])));
+		}
 	}
 
 	public void disableVendorCBox() {
@@ -335,6 +341,12 @@ public class ExpenseTransactionEntryForm extends BeanEditor<ExpenseTransaction> 
 		this.creditCheck.setVisible(true);
 		this.cbExHead.setVisible(true);
 		this.btnNewHead.setVisible(true);
+	}
+
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

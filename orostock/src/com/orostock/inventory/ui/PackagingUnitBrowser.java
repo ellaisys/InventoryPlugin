@@ -18,15 +18,14 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 	 * 
 	 */
 	private static final long serialVersionUID = 3106023138023315427L;
-	private static PackagingUnitEntryForm pf = new PackagingUnitEntryForm();
 
 	public PackagingUnitBrowser() {
-		super(pf);
+		super(new PackagingUnitEntryForm());
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		init(new PackagingUnitTableModel(), new Dimension(500, 400), new Dimension(350, 400));
 		hideDeleteBtn();
-		pf.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		refreshTable();
 	}
 
@@ -47,7 +46,7 @@ public class PackagingUnitBrowser extends ModelBrowser<PackagingUnit> {
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
 		if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
-			pf.setFieldsEnableEdit();
+			beanEditor.setFieldsEnableEdit();
 		}
 	}
 

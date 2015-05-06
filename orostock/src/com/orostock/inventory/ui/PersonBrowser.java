@@ -20,14 +20,13 @@ public class PersonBrowser extends ModelBrowser<Person> {
 	 * 
 	 */
 	private static final long serialVersionUID = 2457952169222336365L;
-	private static PersonEntryForm pf = new PersonEntryForm();
 
 	public PersonBrowser() {
-		super(pf);
+		super(new PersonEntryForm());
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		init(new PersonTableModel(), new Dimension(450, 400), new Dimension(400, 400));
-		pf.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		hideDeleteBtn();
 	}
 
@@ -48,13 +47,13 @@ public class PersonBrowser extends ModelBrowser<Person> {
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
 		if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
-			pf.setFieldsEnableEdit();
+			beanEditor.setFieldsEnableEdit();
 		}
 	}
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
-		pf.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 	}
 
 	protected void searchPerson() {

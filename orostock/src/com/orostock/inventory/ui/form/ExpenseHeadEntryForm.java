@@ -96,4 +96,10 @@ public class ExpenseHeadEntryForm extends BeanEditor<ExpenseHead> {
 		}
 		return false;
 	}
+
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
+	}
 }

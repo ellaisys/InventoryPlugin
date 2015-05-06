@@ -39,6 +39,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		setLayout(new BorderLayout());
 		setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
+		setFieldsEnable(false);
 		this.btnAddItem.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				RecepieView.this.addInventoryItem();

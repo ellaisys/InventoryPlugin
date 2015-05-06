@@ -22,6 +22,10 @@ import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
 
 public class InventoryItemSelector extends BeanEditorDialog {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 8354140176352296143L;
 	JXComboBox comboBox = new JXComboBox();
 	DoubleTextField tfQty = new DoubleTextField(5);
 	JLabel quantityLabel = new JLabel("Quantity in");
@@ -97,6 +101,12 @@ public class InventoryItemSelector extends BeanEditorDialog {
 		public void actionPerformed(ActionEvent arg0) {
 			InventoryItem item = (InventoryItem) ((JXComboBox) arg0.getSource()).getSelectedItem();
 			quantityLabel.setText("Quantity in " + item.getPackagingUnit().getRecepieUnitName());
+		}
+
+		@Override
+		public void clearTableModel() {
+			// TODO Auto-generated method stub
+
 		}
 	}
 }

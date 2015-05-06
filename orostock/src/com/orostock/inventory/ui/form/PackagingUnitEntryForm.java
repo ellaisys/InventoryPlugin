@@ -145,4 +145,10 @@ public class PackagingUnitEntryForm extends BeanEditor<PackagingUnit> {
 		}
 	}
 
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
+	}
+
 }

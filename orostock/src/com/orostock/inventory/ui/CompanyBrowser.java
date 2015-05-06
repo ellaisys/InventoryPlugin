@@ -20,15 +20,14 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 	 * 
 	 */
 	private static final long serialVersionUID = 2457952169222336365L;
-	private static CompanyEntryForm cf = new CompanyEntryForm();
 
 	public CompanyBrowser() {
-		super(cf);
-		cf.clearTableModel();
+		super(new CompanyEntryForm());
+		beanEditor.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		init(new CompanyTableModel(), new Dimension(300, 400), new Dimension(650, 400));
-		cf.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();
 	}
@@ -50,13 +49,13 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 
 	protected void handleAdditionaButtonActionIfApplicable(ActionEvent e) {
 		if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
-			cf.setFieldsEnableEdit();
+			beanEditor.setFieldsEnableEdit();
 		}
 	}
 
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
-		cf.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 	}
 
 	protected void searchCompany() {

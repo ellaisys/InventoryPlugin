@@ -37,11 +37,10 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 	 */
 	private static final long serialVersionUID = -7358720735670997427L;
 	private JButton btnNewTransaction = new JButton("NEW TRANSACTION");
-	private static InventoryItemEntryForm iif = new InventoryItemEntryForm();
 
 	public InventoryItemBrowser() {
-		super(iif);
-		iif.clearTableModel();
+		super(new InventoryItemEntryForm());
+		beanEditor.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewTransaction.setActionCommand(Command.NEW_TRANSACTION.name());
@@ -84,7 +83,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			refreshTable();
 		} else if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
 			this.btnNewTransaction.setEnabled(false);
-			iif.setFieldsEnableEdit(false);
+			beanEditor.setFieldsEnableEdit();
 		} else {
 			InventoryItem bean = (InventoryItem) this.beanEditor.getBean();
 			if ((bean != null) && (bean.getId() != null)) {
@@ -97,7 +96,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 	public void valueChanged(ListSelectionEvent e) {
 		super.valueChanged(e);
 		InventoryItem bean = (InventoryItem) this.beanEditor.getBean();
-		iif.setFieldsEnable(false);
+		beanEditor.setFieldsEnable(false);
 		if ((bean != null) && (bean.getId() != null)) {
 			this.btnNewTransaction.setEnabled(true);
 		} else

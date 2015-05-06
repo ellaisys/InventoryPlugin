@@ -18,6 +18,10 @@ import com.floreantpos.ui.BeanEditor;
 import com.floreantpos.ui.dialog.POSMessageDialog;
 
 public class InventoryGroupEntryForm extends BeanEditor<InventoryGroup> {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4499786971972609242L;
 	private JCheckBox chkVisible;
 	private POSTextField tfName;
 
@@ -102,6 +106,12 @@ public class InventoryGroupEntryForm extends BeanEditor<InventoryGroup> {
 		}
 
 		return false;
+	}
+
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
 	}
 }
 

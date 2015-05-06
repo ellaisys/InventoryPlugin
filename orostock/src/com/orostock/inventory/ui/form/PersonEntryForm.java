@@ -158,4 +158,10 @@ public class PersonEntryForm extends BeanEditor<Person> {
 
 	}
 
+	@Override
+	public void clearTableModel() {
+		// TODO Auto-generated method stub
+
+	}
+
 }
