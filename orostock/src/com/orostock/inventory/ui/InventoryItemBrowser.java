@@ -45,7 +45,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewTransaction.setActionCommand(Command.NEW_TRANSACTION.name());
 		this.btnNewTransaction.setEnabled(false);
-		init(new InventoryItemTableModel(), new Dimension(300, 400), new Dimension(650, 400));
+		init(new InventoryItemTableModel(), new Dimension(400, 400), new Dimension(500, 400));
 		this.browserTable.getColumn(1).setCellRenderer(new InventoryLevelRenderer());
 		this.browserTable.getColumn(2).setCellRenderer(new InventoryLevelRenderer());
 		hideDeleteBtn();
@@ -81,6 +81,7 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			dialog.pack();
 			dialog.open();
 			refreshTable();
+			refreshPageAttr();
 		} else if (e.getActionCommand().equalsIgnoreCase(Command.EDIT.name())) {
 			this.btnNewTransaction.setEnabled(false);
 			beanEditor.setFieldsEnableEdit();

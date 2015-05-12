@@ -25,7 +25,7 @@ public class DistributorBrowser extends ModelBrowser<InventoryVendor> {
 		beanEditor.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
-		init(new DistributorTableModel(), new Dimension(300, 400), new Dimension(650, 400));
+		init(new DistributorTableModel(), new Dimension(400, 400), new Dimension(500, 400));
 		beanEditor.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();

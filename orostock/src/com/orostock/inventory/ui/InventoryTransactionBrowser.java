@@ -35,7 +35,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewTrans.setActionCommand(Command.NEW_TRANSACTION.name());
 		this.btnNewTrans.setEnabled(true);
-		init(new InventoryTransactionTableModel(), new Dimension(450, 400), new Dimension(500, 400));
+		init(new InventoryTransactionTableModel(), new Dimension(600, 400), new Dimension(400, 400));
 		browserTable.getColumn("DATE").setPreferredWidth(80);
 		browserTable.getColumn("TYPE").setPreferredWidth(20);
 		browserTable.getColumn("QTY").setPreferredWidth(50);
@@ -177,7 +177,7 @@ public class InventoryTransactionBrowser extends ModelBrowser<InventoryTransacti
 				}
 			case 4:
 				if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
-					return "₹" + formatDouble(row.getTotalPrice());
+					return "Rs" + formatDouble(row.getTotalPrice());
 				} else {
 					return "-";
 				}

@@ -414,7 +414,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					if (dao1 != null) {
 						inventoryWarehouseItem1 = dao1.findByInventoryItemAndInventoryLocation(inventoryItem, locationIN);
 						double recepieUnits1 = inventoryWarehouseItem1.getTotalRecepieUnits();
-						inventoryWarehouseItem1.setTotalRecepieUnits(recepieUnits1 + (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()));
+						inventoryWarehouseItem1.setTotalRecepieUnits(recepieUnits1
+								+ (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor() * inventoryTransaction.getPackSize().getSize()));
 						inventoryWarehouseItem1.setLastUpdateDate(new Date());
 						inventoryWarehouseItem1.setUnitPurchasePrice(0.0d);
 						dao1.saveOrUpdate(inventoryWarehouseItem1);
@@ -427,7 +428,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					if (dao2 != null) {
 						inventoryWarehouseItem2 = dao2.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
 						double recepieUnits2 = inventoryWarehouseItem2.getTotalRecepieUnits();
-						double unitsToBeRemoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor());
+						double unitsToBeRemoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor() * inventoryTransaction.getPackSize().getSize());
 						if (recepieUnits2 >= unitsToBeRemoved) {
 							inventoryWarehouseItem2.setTotalRecepieUnits(recepieUnits2 - unitsToBeRemoved);
 							inventoryWarehouseItem2.setLastUpdateDate(new Date());

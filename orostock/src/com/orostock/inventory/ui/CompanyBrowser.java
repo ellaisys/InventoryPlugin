@@ -26,7 +26,7 @@ public class CompanyBrowser extends ModelBrowser<Company> {
 		beanEditor.clearTableModel();
 		JPanel buttonPanel = new JPanel();
 		this.browserPanel.add(buttonPanel, "South");
-		init(new CompanyTableModel(), new Dimension(300, 400), new Dimension(650, 400));
+		init(new CompanyTableModel(), new Dimension(400, 400), new Dimension(500, 400));
 		beanEditor.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();

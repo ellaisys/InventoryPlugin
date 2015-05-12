@@ -1,15 +1,18 @@
 package com.orostock.inventory.ui.form;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -23,6 +26,7 @@ import javax.swing.JTextField;
 import net.miginfocom.swing.MigLayout;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.jdesktop.swingx.JXComboBox;
@@ -36,8 +40,10 @@ import com.floreantpos.model.InventoryLocation;
 import com.floreantpos.model.InventoryVendor;
 import com.floreantpos.model.InventoryWarehouseItem;
 import com.floreantpos.model.ItemCompVendPack;
+import com.floreantpos.model.MenuItem;
 import com.floreantpos.model.PackSize;
 import com.floreantpos.model.PackagingUnit;
+import com.floreantpos.model.RecepieItem;
 import com.floreantpos.model.dao.CompanyDAO;
 import com.floreantpos.model.dao.InventoryGroupDAO;
 import com.floreantpos.model.dao.InventoryItemDAO;
@@ -48,6 +54,7 @@ import com.floreantpos.model.dao.ItemCompVendPackDAO;
 import com.floreantpos.model.dao.PackSizeDAO;
 import com.floreantpos.model.dao.PackagingUnitDAO;
 import com.floreantpos.swing.FixedLengthTextField;
+import com.floreantpos.swing.IUpdatebleView;
 import com.floreantpos.swing.IntegerTextField;
 import com.floreantpos.swing.ListComboBoxModel;
 import com.floreantpos.ui.BeanEditor;
@@ -60,6 +67,11 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	 */
 	private static final long serialVersionUID = -6443314703410893172L;
 
+	private javax.swing.JTabbedPane tabbedPane;
+	private javax.swing.JPanel tabMenuIems;
+	private javax.swing.JPanel tabInvItem;
+	protected JTable menuTable;
+	private javax.swing.JScrollPane jScrollPane;
 	JPanel mainPanel = new JPanel();
 	JTextField tfName = new FixedLengthTextField(60);
 	IntegerTextField tfPackSizeReorderLevel = new IntegerTextField(30);
@@ -86,6 +98,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	private JLabel optionLabel;
 	private HashSet<ItemCompVendPack> tbd;
 	private final JButton btnNewGroup = new JButton("New Group");
+	MenuItemDetailModel menuTableModel;
 
 	public InventoryItemEntryForm() {
 		createUI();
@@ -113,6 +126,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		List<PackSize> packSize = PackSizeDAO.getInstance().findAll();
 		this.cbPackSize.setModel(new DefaultComboBoxModel(packSize.toArray(new PackSize[0])));
 		this.cbPackSize.setSelectedIndex(-1);
+
 	}
 
 	public void createNew() {
@@ -124,6 +138,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		inventoryItem.setPackageBarcode(null);
 		setBean(inventoryItem);
 		clearTableModel();
+		clearMenuTableModel();
 	}
 
 	public void clearFields() {
@@ -137,6 +152,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.cbPackSize.setSelectedIndex(-1);
 		this.cbPackagingUnit.setSelectedIndex(-1);
 		clearTableModel();
+		clearMenuTableModel();
 	}
 
 	public void setFieldsEnableEdit() {
@@ -170,29 +186,34 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	}
 
 	private void createUI() {
+		tabbedPane = new javax.swing.JTabbedPane();
+		tabInvItem = new javax.swing.JPanel();
+		tabMenuIems = new javax.swing.JPanel();
+		tabbedPane.addTab(com.floreantpos.POSConstants.GENERAL, tabInvItem);
+		tabbedPane.addTab("Menu Items", tabMenuIems);
+		tabInvItem.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
 		setLayout(new BorderLayout());
-		add(this.mainPanel);
-		this.mainPanel.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
-		this.mainPanel.add(nameLabel = new JLabel("Name"), "cell 0 0,alignx trailing");
-		this.mainPanel.add(this.tfName, "cell 1 0");
-		this.mainPanel.add(descLabel = new JLabel("Description"), "cell 0 2,alignx trailing");
+
+		tabInvItem.add(nameLabel = new JLabel("Name"), "cell 0 0,alignx trailing");
+		tabInvItem.add(this.tfName, "cell 1 0");
+		tabInvItem.add(descLabel = new JLabel("Description"), "cell 0 2,alignx trailing");
 		this.tfDescription.setTabSize(4);
 		JScrollPane scrollPane = new JScrollPane(this.tfDescription);
-		this.mainPanel.add(scrollPane, "cell 1 2");
-		this.mainPanel.add(packLabel = new JLabel("Packaging unit"), "cell 0 3,alignx trailing");
-		this.mainPanel.add(this.cbPackagingUnit, "cell 1 3");
-		this.mainPanel.add(reorderLabel = new JLabel("Reorder level"), "cell 0 6,alignx trailing");
-		this.mainPanel.add(this.tfPackSizeReorderLevel, "cell 1 6");
-		this.mainPanel.add(relenishLabel = new JLabel("Replenish level"), "cell 0 7,alignx trailing");
-		this.mainPanel.add(this.tfPackSizeReplenishLevel, "cell 1 7");
-		this.mainPanel.add(groupLabel = new JLabel("Group"), "cell 0 13,alignx trailing");
-		this.mainPanel.add(this.cbGroup, "cell 1 13");
+		tabInvItem.add(scrollPane, "cell 1 2");
+		tabInvItem.add(packLabel = new JLabel("Packaging unit"), "cell 0 3,alignx trailing");
+		tabInvItem.add(this.cbPackagingUnit, "cell 1 3");
+		tabInvItem.add(reorderLabel = new JLabel("Reorder level"), "cell 0 6,alignx trailing");
+		tabInvItem.add(this.tfPackSizeReorderLevel, "cell 1 6");
+		tabInvItem.add(relenishLabel = new JLabel("Replenish level"), "cell 0 7,alignx trailing");
+		tabInvItem.add(this.tfPackSizeReplenishLevel, "cell 1 7");
+		tabInvItem.add(groupLabel = new JLabel("Group"), "cell 0 13,alignx trailing");
+		tabInvItem.add(this.cbGroup, "cell 1 13");
 		this.btnNewGroup.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				InventoryItemEntryForm.this.createNewGroup();
 			}
 		});
-		this.mainPanel.add(this.btnNewGroup, "cell 3 13,growx");
+		tabInvItem.add(this.btnNewGroup, "cell 3 13,growx");
 
 		JPanel hPanel = new JPanel(new FlowLayout(FlowLayout.LEADING));
 		JPanel hPanel1 = new JPanel(new FlowLayout(FlowLayout.LEADING));
@@ -256,9 +277,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		hPanel1.add(this.btnAdd, "cell 4 3,alignx");
 		hPanel.setPreferredSize(new Dimension(500, 40));
 		hPanel1.setPreferredSize(new Dimension(500, 40));
-
-		this.mainPanel.add(hPanel, "cell 0 15 3 3");
-		this.mainPanel.add(hPanel1, "cell 0 18 3 3");
+		tabInvItem.add(hPanel, "cell 0 15 3 3");
+		tabInvItem.add(hPanel1, "cell 0 18 3 3");
 
 		this.btnDel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -271,8 +291,18 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 
 		JScrollPane jsp = new JScrollPane(this.table);
 		jsp.setPreferredSize(new Dimension(500, 200));
-		this.mainPanel.add(jsp, "cell 1 30 3 3");
-		this.mainPanel.add(btnDel, "cell 1 35 2 1");
+		tabInvItem.add(jsp, "cell 1 30 3 3");
+		tabInvItem.add(btnDel, "cell 1 35 2 1");
+
+		jScrollPane = new javax.swing.JScrollPane();
+		tabMenuIems.setLayout(new BorderLayout());
+		this.menuTable = new JTable(new MenuItemDetailModel());
+		jScrollPane.setPreferredSize(new Dimension(500, 200));
+		menuTableModel = (MenuItemDetailModel) this.menuTable.getModel();
+		menuTableModel.setPageSize(100);
+		tabMenuIems.add(jScrollPane);
+
+		add(tabbedPane);
 	}
 
 	protected void createNewGroup() {
@@ -368,6 +398,26 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.cbPackSize.setSelectedIndex(-1);
 		tbd.clear();
 		loadTableData();
+		if (tabMenuIems != null) {
+			menuTableModel.setRows(getMenu(inventoryItem));
+		}
+	}
+
+	public void clearMenuTableModel() {
+		if (this.menuTable != null && this.menuTable.getModel() != null) {
+			MenuItemDetailModel tableModel = (MenuItemDetailModel) this.menuTable.getModel();
+			tableModel.setRows(null);
+		}
+	}
+
+	public List<Pair<MenuItem, RecepieItem>> getMenu(InventoryItem item) {
+		Set<RecepieItem> recItems = item.getRecepieItems();
+		List<Pair<MenuItem, RecepieItem>> mrList = new ArrayList<Pair<MenuItem, RecepieItem>>();
+		for (RecepieItem r : recItems) {
+			Pair<MenuItem, RecepieItem> mr = Pair.of(r.getRecepie().getMenuItem(), r);
+			mrList.add(mr);
+		}
+		return mrList;
 	}
 
 	String formatDouble(double d) {
@@ -394,6 +444,18 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 			inventoryItem.setInventoryGroup((InventoryGroup) this.cbGroup.getSelectedItem());
 		} else {
 			inventoryItem.setInventoryGroup(null);
+		}
+		menuTableModel.setRows(getMenu(inventoryItem));
+
+		int tabCount = tabbedPane.getTabCount();
+		for (int i = 0; i < tabCount; i++) {
+			Component componentAt = tabbedPane.getComponent(i);
+			if (componentAt instanceof IUpdatebleView) {
+				IUpdatebleView view = (IUpdatebleView) componentAt;
+				if (!view.updateModel(inventoryItem)) {
+					return false;
+				}
+			}
 		}
 		return true;
 	}
@@ -525,5 +587,30 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 			return null;
 		}
 
+	}
+
+	static class MenuItemDetailModel extends ListTableModel<Pair<MenuItem, RecepieItem>> {
+		private static final long serialVersionUID = -5532926699493030221L;
+
+		public MenuItemDetailModel() {
+			super(new String[] { "Menu Item", "Quantity", "Unit" });
+		}
+
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			Pair<MenuItem, RecepieItem> row = (Pair<MenuItem, RecepieItem>) getRowData(rowIndex);
+			switch (columnIndex) {
+			case 0:
+				return row.getLeft().getName();
+			case 1:
+				return formatDouble(row.getRight().getPercentage());
+			case 2:
+				if (row.getRight().getInventoryItem() != null && row.getRight().getInventoryItem().getPackagingUnit() != null) {
+					return row.getRight().getInventoryItem().getPackagingUnit().getRecepieUnitName();
+				} else {
+					return "";
+				}
+			}
+			return "";
+		}
 	}
 }

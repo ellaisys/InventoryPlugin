@@ -34,7 +34,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
 		this.btnNewExpense.setEnabled(true);
-		init(new ExpenseTransactionTableModel(), new Dimension(400, 400), new Dimension(550, 400));
+		init(new ExpenseTransactionTableModel(), new Dimension(600, 400), new Dimension(400, 400));
 		// "DATE", "TYPE", "HEAD", "VENDOR", "AMOUNT", "VAT", "CREDIT"
 		browserTable.getColumn("DATE").setPreferredWidth(70);
 		browserTable.getColumn("TYPE").setPreferredWidth(70);
@@ -157,7 +157,7 @@ public class ExpenseTransactionBrowser extends ModelBrowser<ExpenseTransaction> 
 						return "";
 					}
 				case 4:
-					return "₹" + formatDouble(row.getAmount());
+					return "Rs" + formatDouble(row.getAmount());
 
 				case 5:
 					return formatDouble(row.getVatPaid().getRate()) + " %";

@@ -33,7 +33,7 @@ public class ExpenseVendorBrowser extends ModelBrowser<InventoryVendor> {
 		this.browserPanel.add(buttonPanel, "South");
 		this.btnNewExpense.setActionCommand(Command.NEW_EXPENSE.name());
 		this.btnNewExpense.setEnabled(false);
-		init(new ExpenseVendorTableModel(), new Dimension(300, 400), new Dimension(650, 400));
+		init(new ExpenseVendorTableModel(), new Dimension(400, 400), new Dimension(500, 400));
 		beanEditor.setFieldsEnable(false);
 		hideDeleteBtn();
 		refreshTable();
