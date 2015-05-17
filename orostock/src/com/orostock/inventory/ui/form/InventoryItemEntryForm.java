@@ -74,8 +74,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	private javax.swing.JScrollPane jScrollPane;
 	JPanel mainPanel = new JPanel();
 	JTextField tfName = new FixedLengthTextField(60);
-	IntegerTextField tfPackSizeReorderLevel = new IntegerTextField(30);
-	IntegerTextField tfPackSizeReplenishLevel = new IntegerTextField(30);
+	private IntegerTextField tfPackSizeReorderLevel = new IntegerTextField(30);
+	private IntegerTextField tfPackSizeReplenishLevel = new IntegerTextField(30);
 	JTextArea tfDescription = new JTextArea(4, 10);
 	private ListComboBoxModel unitModel = new ListComboBoxModel();
 	private final JXComboBox cbPackagingUnit = new JXComboBox(this.unitModel);
@@ -98,7 +98,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	private JLabel optionLabel;
 	private HashSet<ItemCompVendPack> tbd;
 	private final JButton btnNewGroup = new JButton("New Group");
-	MenuItemDetailModel menuTableModel;
+
+	// MenuItemDetailModel menuTableModel;
 
 	public InventoryItemEntryForm() {
 		createUI();
@@ -182,6 +183,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.btnAdd.setEnabled(enable);
 		this.btnDel.setEnabled(enable);
 		this.table.setEnabled(enable);
+		this.menuTable.setEnabled(enable);
+
 		this.btnNewGroup.setEnabled(enable);
 	}
 
@@ -294,13 +297,14 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		tabInvItem.add(jsp, "cell 1 30 3 3");
 		tabInvItem.add(btnDel, "cell 1 35 2 1");
 
-		jScrollPane = new javax.swing.JScrollPane();
-		tabMenuIems.setLayout(new BorderLayout());
+		tabMenuIems.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
 		this.menuTable = new JTable(new MenuItemDetailModel());
+		jScrollPane = new JScrollPane(this.menuTable);
+
 		jScrollPane.setPreferredSize(new Dimension(500, 200));
-		menuTableModel = (MenuItemDetailModel) this.menuTable.getModel();
+		MenuItemDetailModel menuTableModel = (MenuItemDetailModel) this.menuTable.getModel();
 		menuTableModel.setPageSize(100);
-		tabMenuIems.add(jScrollPane);
+		tabMenuIems.add(jScrollPane, "cell 1 30 3 3");
 
 		add(tabbedPane);
 	}
@@ -398,7 +402,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.cbPackSize.setSelectedIndex(-1);
 		tbd.clear();
 		loadTableData();
-		if (tabMenuIems != null) {
+		MenuItemDetailModel menuTableModel = (MenuItemDetailModel) this.menuTable.getModel();
+		if (tabMenuIems != null && inventoryItem.getId() != null) {
 			menuTableModel.setRows(getMenu(inventoryItem));
 		}
 	}
@@ -445,7 +450,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		} else {
 			inventoryItem.setInventoryGroup(null);
 		}
-		menuTableModel.setRows(getMenu(inventoryItem));
+		// menuTableModel.setRows(getMenu(inventoryItem));
 
 		int tabCount = tabbedPane.getTabCount();
 		for (int i = 0; i < tabCount; i++) {
@@ -590,7 +595,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	}
 
 	static class MenuItemDetailModel extends ListTableModel<Pair<MenuItem, RecepieItem>> {
-		private static final long serialVersionUID = -5532926699493030221L;
+
+		private static final long serialVersionUID = 2219488651760125616L;
 
 		public MenuItemDetailModel() {
 			super(new String[] { "Menu Item", "Quantity", "Unit" });
