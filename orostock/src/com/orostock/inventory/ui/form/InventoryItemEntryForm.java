@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -190,9 +191,13 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	}
 
 	private void createUI() {
-		tabbedPane = new javax.swing.JTabbedPane();
-		tabInvItem = new javax.swing.JPanel();
-		tabMenuIems = new javax.swing.JPanel();
+		tabbedPane = new JTabbedPane();
+		tabInvItem = new JPanel();
+		tabMenuIems = new JPanel();
+		tabMenuIems.setPreferredSize(new Dimension(500, 400));
+		tabInvItem.setPreferredSize(new Dimension(500, 400));
+		tabbedPane.setPreferredSize(new Dimension(500, 400));
+
 		tabbedPane.addTab(com.floreantpos.POSConstants.GENERAL, tabInvItem);
 		tabbedPane.addTab("Menu Items", tabMenuIems);
 		tabInvItem.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
@@ -297,16 +302,16 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		jsp.setPreferredSize(new Dimension(500, 200));
 		tabInvItem.add(jsp, "cell 1 30 3 3");
 		tabInvItem.add(btnDel, "cell 1 35 2 1");
-
+		this.table.setPreferredSize(new Dimension(300, 400));
 		tabMenuIems.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
 		this.menuTable = new JTable(new MenuItemDetailModel());
+		this.menuTable.setPreferredSize(new Dimension(300, 400));
 		jScrollPane = new JScrollPane(this.menuTable);
 
-		jScrollPane.setPreferredSize(new Dimension(500, 200));
+		jScrollPane.setPreferredSize(new Dimension(500, 600));
 		MenuItemDetailModel menuTableModel = (MenuItemDetailModel) this.menuTable.getModel();
 		menuTableModel.setPageSize(100);
 		tabMenuIems.add(jScrollPane, "cell 1 30 3 3");
-
 		add(tabbedPane);
 	}
 

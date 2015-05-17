@@ -77,6 +77,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	private JLabel itemLabel;
 	private JLabel transLabel;
 	private JLabel noteLabel;
+	private JLabel lastPriceLabel;
+	private DoubleTextField lastPrice;
 	private JXComboBox cbVat;
 	private JLabel discountLabel;
 	private DoubleTextField tfDiscount;
@@ -89,6 +91,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	private JLabel packLabel;
 	private JLabel companyLabel;
 	private boolean newTransaction;
+	private HashMap<Pair<Company, Pair<InventoryVendor, PackSize>>, Double> mapPrice;
 
 	public boolean isNewTransaction() {
 		return newTransaction;
@@ -149,7 +152,6 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 
 		this.cbItem.setSelectedIndex(-1);
 		this.cbItem.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (InventoryTransactionEntryForm.this.newTransaction) {
@@ -171,12 +173,10 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					}
 				}
 			}
-
 		});
 
 		this.cbCompany.setSelectedIndex(-1);
 		this.cbCompany.addActionListener(new ActionListener() {
-
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (InventoryTransactionEntryForm.this.newTransaction) {
@@ -194,7 +194,6 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					}
 				}
 			}
-
 		});
 
 		this.cbVendor.setModel(new DefaultComboBoxModel());
@@ -222,6 +221,31 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.cbPackSize.setModel(new DefaultComboBoxModel());
 		cbPackSize.setSelectedIndex(-1);
 		cbPackSize.setEnabled(false);
+		this.cbPackSize.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (InventoryTransactionEntryForm.this.newTransaction) {
+					JXComboBox combo = (JXComboBox) e.getSource();
+					if (combo.getSelectedIndex() >= 0) {
+						PackSize ps = (PackSize) combo.getSelectedItem();
+						Company c = (Company) cbCompany.getSelectedItem();
+						InventoryVendor iv = (InventoryVendor) cbVendor.getSelectedItem();
+						if (ps != null) {
+							if (mapPrice != null && !mapPrice.isEmpty()) {
+								Pair<Company, Pair<InventoryVendor, PackSize>> pPrice = Pair.of(c, Pair.of(iv, ps));
+								if (mapPrice.get(pPrice) != null) {
+									lastPrice.setText(formatDouble(mapPrice.get(pPrice)));
+								} else {
+									lastPrice.setText("");
+								}
+							}
+						}
+					}
+				} else {
+					lastPrice.setText("");
+				}
+			}
+		});
 
 		this.inWareHouse.setModel(new DefaultComboBoxModel(warehouses.toArray(new InventoryWarehouse[0])));
 		this.outWareHouse.setModel(new DefaultComboBoxModel(warehouses.toArray(new InventoryWarehouse[0])));
@@ -278,6 +302,11 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.cbPackSize = new JXComboBox();
 		add(this.cbPackSize, "wrap, w 200px");
 
+		add(this.lastPriceLabel = new JLabel("Last per Pack price"));
+		this.lastPrice = new DoubleTextField(30);
+		add(this.lastPrice, "wrap, w 200px");
+		this.lastPrice.setEnabled(false);
+
 		add(this.itemCountLabel = new JLabel("No of packs"));
 		this.tfUnit = new DoubleTextField(20);
 		add(this.tfUnit, "grow, wrap");
@@ -323,6 +352,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		icvpList = ItemCompVendPackDAO.getInstance().findAllByInventoryItem(this.inventoryItem);
 		mapCompVend = new HashMap<Company, HashSet<InventoryVendor>>();
 		mapCVPack = new HashMap<Pair<InventoryVendor, Company>, HashSet<PackSize>>();
+		mapPrice = new HashMap<Pair<Company, Pair<InventoryVendor, PackSize>>, Double>();
 		this.packLabel.setText(this.inventoryItem.getPackagingUnit().getName() + " per pack");
 		if (icvpList != null) {
 			for (ItemCompVendPack icvp : icvpList) {
@@ -339,6 +369,9 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 					mapCVPack.put(pair, packSet);
 				}
 				mapCVPack.get(pair).add(icvp.getPackSize());
+
+				Pair<Company, Pair<InventoryVendor, PackSize>> pPrice = Pair.of(c, Pair.of(icvp.getInventoryVendor(), icvp.getPackSize()));
+				mapPrice.put(pPrice, icvp.getPrice());
 			}
 
 			// if (isNewTransaction()) {
@@ -660,6 +693,13 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			} else {
 				POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Please add a valid Pack size!!");
 			}
+			ItemCompVendPack icvp = ItemCompVendPackDAO.getInstance().findByICVP(this.inventoryItem, (Company) this.cbCompany.getSelectedItem(), (InventoryVendor) this.cbVendor.getSelectedItem(),
+					(PackSize) this.cbPackSize.getSelectedItem());
+			double lastPriceVal = Double.valueOf(this.tfTotalPrice.getDouble()) / Double.valueOf(this.tfUnit.getDouble());
+			if (this.tfUnit.getDouble() > 0) {
+				icvp.setPrice(lastPriceVal);
+				ItemCompVendPackDAO.getInstance().saveOrUpdate(icvp);
+			}
 			break;
 		case OUT:
 			transaction.setInventoryWarehouseByFromWarehouseId((InventoryWarehouse) this.outWareHouse.getSelectedItem());
@@ -735,6 +775,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.outWareHouse.setVisible(false);
 			this.outWareHouseLabel.setVisible(false);
 			this.itemCountLabel.setText("No of packs");
+			this.lastPriceLabel.setVisible(true);
+			this.lastPrice.setVisible(true);
 			break;
 		case OUT:
 			this.cbVendor.setVisible(true);
@@ -753,6 +795,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.outWareHouse.setVisible(true);
 			this.outWareHouseLabel.setVisible(true);
 			this.itemCountLabel.setText("No of packs");
+			this.lastPriceLabel.setVisible(true);
+			this.lastPrice.setVisible(true);
 			break;
 		case MOVEMENT:
 			this.cbVendor.setVisible(true);
@@ -771,6 +815,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.outWareHouse.setVisible(true);
 			this.outWareHouseLabel.setVisible(true);
 			this.itemCountLabel.setText("No of packs");
+			this.lastPriceLabel.setVisible(false);
+			this.lastPrice.setVisible(false);
 			break;
 		case ADJUSTMENT:
 		case WASTAGE:
@@ -790,6 +836,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.inWareHouse.setVisible(false);
 			this.outWareHouse.setVisible(true);
 			this.outWareHouseLabel.setVisible(true);
+			this.lastPriceLabel.setVisible(false);
+			this.lastPrice.setVisible(false);
 			if (inventoryItem != null && inventoryItem.getPackagingUnit() != null && inventoryItem.getPackagingUnit().getRecepieUnitName() != null) {
 				this.itemCountLabel.setText("Units (" + inventoryItem.getPackagingUnit().getRecepieUnitName() + ")");
 			}
@@ -826,6 +874,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.cbPackSize.setEnabled(enable);
 		this.discountLabel.setEnabled(enable);
 		this.companyLabel.setEnabled(enable);
+		this.lastPriceLabel.setEnabled(enable);
+		this.lastPrice.setEnabled(enable);
 	}
 
 	public void setFieldsEnableEdit() {

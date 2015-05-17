@@ -12,12 +12,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.MenuItem;
 import com.floreantpos.model.Recepie;
 import com.floreantpos.model.RecepieItem;
 import com.floreantpos.model.dao.RecepieItemDAO;
 import com.floreantpos.swing.IUpdatebleView;
+import com.floreantpos.ui.dialog.POSMessageDialog;
 
 public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 	/**
@@ -77,6 +79,15 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		item.setInventoryItem(this.itemSelector.getSelectedItem());
 
 		RecepieItemTableModel model = (RecepieItemTableModel) this.recepieItemTable.getModel();
+		List<RecepieItem> items = model.getRows();
+		if (items != null && items.size() > 0) {
+			for (RecepieItem r : items) {
+				if (r.getInventoryItem().equals(item.getInventoryItem())) {
+					POSMessageDialog.showError(BackOfficeWindow.getInstance(), "Duplicate entry!");
+					return;
+				}
+			}
+		}
 		model.addItem(item);
 		recepieItemTable.invalidate();
 
