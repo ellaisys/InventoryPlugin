@@ -17,6 +17,8 @@ import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableCellRenderer;
 
+import org.hibernate.Session;
+
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.bo.ui.Command;
 import com.floreantpos.bo.ui.ModelBrowser;
@@ -124,36 +126,42 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			List<InventoryWarehouseItem> listItems = dao.findByInventoryItem(row);
 			Double cafeRcpQty = 0.0d;
 			Double godownRcpQty = 0.0d;
-			if (listItems != null && listItems.size() == 2) {
-				cafeRcpQty = listItems.get(0).getTotalRecepieUnits();
-				godownRcpQty = listItems.get(1).getTotalRecepieUnits();
-			}
-			switch (columnIndex) {
-			case 0:
-				return row.getName();
-			case 1:
-				if (row.getPackageReplenishLevel() == -100) {
-					return new InventoryLevel("NA", Color.GRAY);
-				} else {
-					if (cafeRcpQty <= row.getPackageReplenishLevel()) {
-						return new InventoryLevel(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.YELLOW);
-					} else {
-						return new InventoryLevel(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
-					}
+			Session session = InventoryItemDAO.getInstance().createNewSession();
+			session.refresh(row);
+			try {
+				if (listItems != null && listItems.size() == 2) {
+					cafeRcpQty = listItems.get(0).getTotalRecepieUnits();
+					godownRcpQty = listItems.get(1).getTotalRecepieUnits();
 				}
-			case 2:
-				if (row.getPackageReorderLevel() == -100) {
-					return new InventoryLevel("NA", Color.GRAY);
-				} else {
-					if (godownRcpQty <= row.getPackageReorderLevel()) {
-						return new InventoryLevel(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.PINK);
+				switch (columnIndex) {
+				case 0:
+					return row.getName();
+				case 1:
+					if (row.getPackageReplenishLevel() == -100) {
+						return new InventoryLevel("NA", Color.GRAY);
 					} else {
-						return new InventoryLevel(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
+						if (cafeRcpQty <= row.getPackageReplenishLevel()) {
+							return new InventoryLevel(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.YELLOW);
+						} else {
+							return new InventoryLevel(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
+						}
 					}
-				}
+				case 2:
+					if (row.getPackageReorderLevel() == -100) {
+						return new InventoryLevel("NA", Color.GRAY);
+					} else {
+						if (godownRcpQty <= row.getPackageReorderLevel()) {
+							return new InventoryLevel(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.PINK);
+						} else {
+							return new InventoryLevel(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
+						}
+					}
 
+				}
+				return row.getName();
+			} finally {
+				session.close();
 			}
-			return row.getName();
 		}
 	}
 }

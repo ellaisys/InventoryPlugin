@@ -51,6 +51,7 @@ import com.floreantpos.model.dao.InventoryLocationDAO;
 import com.floreantpos.model.dao.InventoryVendorDAO;
 import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
 import com.floreantpos.model.dao.ItemCompVendPackDAO;
+import com.floreantpos.model.dao.MenuItemDAO;
 import com.floreantpos.model.dao.PackSizeDAO;
 import com.floreantpos.model.dao.PackagingUnitDAO;
 import com.floreantpos.swing.FixedLengthTextField;
@@ -390,6 +391,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		if (inventoryItem == null) {
 			return;
 		}
+		Session session = InventoryItemDAO.getInstance().createNewSession();
+		session.refresh(inventoryItem);
 		this.tfName.setText(inventoryItem.getName());
 		this.cbPackagingUnit.setSelectedItem(inventoryItem.getPackagingUnit());
 		this.tfPackSizeReorderLevel.setText(String.valueOf(inventoryItem.getPackageReorderLevel()));
@@ -406,6 +409,7 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		if (tabMenuIems != null && inventoryItem.getId() != null) {
 			menuTableModel.setRows(getMenu(inventoryItem));
 		}
+		session.close();
 	}
 
 	public void clearMenuTableModel() {
@@ -416,12 +420,15 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 	}
 
 	public List<Pair<MenuItem, RecepieItem>> getMenu(InventoryItem item) {
+		Session session = InventoryItemDAO.getInstance().createNewSession();
+		session.refresh(item);
 		Set<RecepieItem> recItems = item.getRecepieItems();
 		List<Pair<MenuItem, RecepieItem>> mrList = new ArrayList<Pair<MenuItem, RecepieItem>>();
 		for (RecepieItem r : recItems) {
 			Pair<MenuItem, RecepieItem> mr = Pair.of(r.getRecepie().getMenuItem(), r);
 			mrList.add(mr);
 		}
+		session.close();
 		return mrList;
 	}
 
@@ -604,19 +611,28 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			Pair<MenuItem, RecepieItem> row = (Pair<MenuItem, RecepieItem>) getRowData(rowIndex);
-			switch (columnIndex) {
-			case 0:
-				return row.getLeft().getName();
-			case 1:
-				return formatDouble(row.getRight().getPercentage());
-			case 2:
-				if (row.getRight().getInventoryItem() != null && row.getRight().getInventoryItem().getPackagingUnit() != null) {
-					return row.getRight().getInventoryItem().getPackagingUnit().getRecepieUnitName();
-				} else {
-					return "";
+			Session session = MenuItemDAO.getInstance().createNewSession();
+			session.refresh(row.getLeft());
+			session.refresh(row.getRight());
+			session.refresh(row.getRight().getInventoryItem());
+			session.refresh(row.getRight().getInventoryItem().getPackagingUnit());
+			try {
+				switch (columnIndex) {
+				case 0:
+					return row.getLeft().getName();
+				case 1:
+					return formatDouble(row.getRight().getPercentage());
+				case 2:
+					if (row.getRight().getInventoryItem() != null && row.getRight().getInventoryItem().getPackagingUnit() != null) {
+						return row.getRight().getInventoryItem().getPackagingUnit().getRecepieUnitName();
+					} else {
+						return "";
+					}
 				}
+				return "";
+			} finally {
+				session.close();
 			}
-			return "";
 		}
 	}
 }
