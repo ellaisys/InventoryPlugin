@@ -186,7 +186,6 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		this.btnDel.setEnabled(enable);
 		this.table.setEnabled(enable);
 		this.menuTable.setEnabled(enable);
-
 		this.btnNewGroup.setEnabled(enable);
 	}
 
@@ -397,7 +396,8 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 			return;
 		}
 		Session session = InventoryItemDAO.getInstance().createNewSession();
-		session.refresh(inventoryItem);
+		if (inventoryItem.getId() != null)
+			session.refresh(inventoryItem);
 		this.tfName.setText(inventoryItem.getName());
 		this.cbPackagingUnit.setSelectedItem(inventoryItem.getPackagingUnit());
 		this.tfPackSizeReorderLevel.setText(String.valueOf(inventoryItem.getPackageReorderLevel()));
@@ -426,7 +426,9 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 
 	public List<Pair<MenuItem, RecepieItem>> getMenu(InventoryItem item) {
 		Session session = InventoryItemDAO.getInstance().createNewSession();
-		session.refresh(item);
+		if (item.getId() != null)
+
+			session.refresh(item);
 		Set<RecepieItem> recItems = item.getRecepieItems();
 		List<Pair<MenuItem, RecepieItem>> mrList = new ArrayList<Pair<MenuItem, RecepieItem>>();
 		for (RecepieItem r : recItems) {
@@ -617,10 +619,18 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			Pair<MenuItem, RecepieItem> row = (Pair<MenuItem, RecepieItem>) getRowData(rowIndex);
 			Session session = MenuItemDAO.getInstance().createNewSession();
-			session.refresh(row.getLeft());
-			session.refresh(row.getRight());
-			session.refresh(row.getRight().getInventoryItem());
-			session.refresh(row.getRight().getInventoryItem().getPackagingUnit());
+			if (row.getLeft().getId() != null)
+
+				session.refresh(row.getLeft());
+			if (row.getRight().getId() != null)
+
+				session.refresh(row.getRight());
+			if (row.getRight().getInventoryItem().getId() != null)
+
+				session.refresh(row.getRight().getInventoryItem());
+			if (row.getRight().getInventoryItem().getPackagingUnit().getId() != null)
+
+				session.refresh(row.getRight().getInventoryItem().getPackagingUnit());
 			try {
 				switch (columnIndex) {
 				case 0:

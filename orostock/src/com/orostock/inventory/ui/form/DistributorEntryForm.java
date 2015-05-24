@@ -5,14 +5,17 @@ import java.awt.Dimension;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 
@@ -25,10 +28,14 @@ import org.jdesktop.swingx.JXComboBox;
 
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
+import com.floreantpos.model.Company;
 import com.floreantpos.model.InventoryVendor;
+import com.floreantpos.model.ItemCompVendPack;
 import com.floreantpos.model.Person;
 import com.floreantpos.model.VendorPerson;
+import com.floreantpos.model.dao.CompanyDAO;
 import com.floreantpos.model.dao.InventoryVendorDAO;
+import com.floreantpos.model.dao.ItemCompVendPackDAO;
 import com.floreantpos.model.dao.PersonDAO;
 import com.floreantpos.model.dao.VendorPersonDAO;
 import com.floreantpos.swing.POSTextField;
@@ -40,6 +47,11 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 	 * 
 	 */
 	private static final long serialVersionUID = 4705036150381956350L;
+	private javax.swing.JTabbedPane tabbedPane;
+	private javax.swing.JPanel tabDistributor;
+	private javax.swing.JPanel tabCompanies;
+	protected JTable companyTable;
+	private javax.swing.JScrollPane jScrollPane;
 	private POSTextField tfName;
 	private TextField tfPhone;
 	private TextField tfEmail;
@@ -77,51 +89,69 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 	}
 
 	private void createUI() {
+		tabbedPane = new JTabbedPane();
+		tabDistributor = new JPanel();
+		tabCompanies = new JPanel();
+		tabDistributor.setPreferredSize(new Dimension(500, 400));
+		tabCompanies.setPreferredSize(new Dimension(500, 400));
+		tabbedPane.setPreferredSize(new Dimension(500, 400));
+
+		tabbedPane.addTab(com.floreantpos.POSConstants.GENERAL, tabDistributor);
+		tabbedPane.addTab("Companies", tabCompanies);
+		tabDistributor.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
 		setLayout(new BorderLayout());
-		add(this.mainPanel);
 
-		this.mainPanel.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
-
-		this.mainPanel.add(nameLabel = new JLabel("Name"), "cell 0 2,alignx trailing");
+		tabDistributor.add(nameLabel = new JLabel("Name"), "cell 0 2,alignx trailing");
 		this.tfName = new POSTextField();
-		this.mainPanel.add(this.tfName, "grow, wrap");
+		tabDistributor.add(this.tfName, "grow, wrap");
 
-		this.mainPanel.add(phoneLabel = new JLabel("Phone"), "cell 0 5,alignx trailing");
+		tabDistributor.add(phoneLabel = new JLabel("Phone"), "cell 0 5,alignx trailing");
 		this.tfPhone = new TextField(20);
-		this.mainPanel.add(this.tfPhone, "grow, wrap");
+		tabDistributor.add(this.tfPhone, "grow, wrap");
 
-		this.mainPanel.add(emailLabel = new JLabel("Email"), "cell 0 8,alignx trailing");
+		tabDistributor.add(emailLabel = new JLabel("Email"), "cell 0 8,alignx trailing");
 		this.tfEmail = new TextField(40);
-		this.mainPanel.add(this.tfEmail, "grow, wrap");
+		tabDistributor.add(this.tfEmail, "grow, wrap");
 
-		this.mainPanel.add(addLabel = new JLabel("Address"), "cell 0 11,alignx trailing");
+		tabDistributor.add(addLabel = new JLabel("Address"), "cell 0 11,alignx trailing");
 		this.taAddress = new JTextArea(4, 10);
 		this.taAddress.setTabSize(4);
 		JScrollPane scrollPane = new JScrollPane(this.taAddress);
-		this.mainPanel.add(scrollPane, "cell 1 11");
+		tabDistributor.add(scrollPane, "cell 1 11");
 
-		this.mainPanel.add(persLabel = new JLabel("People"), "cell 0 15,alignx trailing");
-		this.mainPanel.add(this.cbPerson, "cell 1 15,alignx");
+		tabDistributor.add(persLabel = new JLabel("People"), "cell 0 15,alignx trailing");
+		tabDistributor.add(this.cbPerson, "cell 1 15,alignx");
 		this.btnAdd.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				DistributorEntryForm.this.addNewPerson();
 			}
 		});
-		this.mainPanel.add(this.btnAdd, "cell 2 15");
+		tabDistributor.add(this.btnAdd, "cell 2 15");
 
 		this.table = new JTable(new DistributorDetailModel());
 		DistributorDetailModel tableModel = (DistributorDetailModel) this.table.getModel();
 		tableModel.setPageSize(30);
 		JScrollPane jsp = new JScrollPane(this.table);
 		jsp.setPreferredSize(new Dimension(500, 200));
-		this.mainPanel.add(jsp, "cell 1 20");
+		tabDistributor.add(jsp, "cell 1 20");
 
 		this.btnDel.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				DistributorEntryForm.this.deleteSelectedPerson();
 			}
 		});
-		this.mainPanel.add(btnDel, "cell 2 33");
+		tabDistributor.add(btnDel, "cell 2 33");
+
+		tabCompanies.setLayout(new MigLayout("fillx", "[][grow,fill][grow,fill][]", "[][][][][][][][][][][][][][][][][]"));
+		this.companyTable = new JTable(new CompanyTableModel());
+		this.companyTable.setPreferredSize(new Dimension(300, 400));
+		jScrollPane = new JScrollPane(this.companyTable);
+
+		jScrollPane.setPreferredSize(new Dimension(500, 600));
+		CompanyTableModel compTableModel = (CompanyTableModel) this.companyTable.getModel();
+		compTableModel.setPageSize(100);
+		tabCompanies.add(jScrollPane, "cell 1 30 3 3");
+		add(tabbedPane);
 	}
 
 	protected void deleteSelectedPerson() {
@@ -171,6 +201,7 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 		this.taAddress.setText("");
 		this.cbPerson.setSelectedIndex(-1);
 		clearTableModel();
+		clearCompanyTableModel();
 	}
 
 	public void setFieldsEnable(boolean enable) {
@@ -187,6 +218,7 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 		this.table.setEnabled(enable);
 		this.persLabel.setEnabled(enable);
 		this.cbPerson.setEnabled(enable);
+		this.companyTable.setEnabled(enable);
 	}
 
 	public void setFieldsEnableEdit() {
@@ -212,6 +244,26 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 		this.cbPerson.setSelectedIndex(-1);
 		tbd.clear();
 		loadTableData();
+		CompanyTableModel compTableModel = (CompanyTableModel) this.companyTable.getModel();
+		if (tabCompanies != null && vend.getId() != null) {
+			compTableModel.setRows(getCompany(vend));
+		}
+	}
+
+	private List<Company> getCompany(InventoryVendor vend) {
+		List<ItemCompVendPack> icvps = ItemCompVendPackDAO.getInstance().findAllByVendor(vend);
+		Set<Company> companies = new HashSet<Company>();
+		if (icvps != null) {
+			for (ItemCompVendPack i : icvps) {
+				companies.add(i.getCompany());
+			}
+		}
+		if (companies == null) {
+			return null;
+		} else {
+			List<Company> compList = new ArrayList<Company>(companies);
+			return compList;
+		}
 	}
 
 	public boolean updateModel() {
@@ -312,6 +364,13 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 		}
 	}
 
+	public void clearCompanyTableModel() {
+		if (this.companyTable != null && this.companyTable.getModel() != null) {
+			CompanyTableModel tableModel = (CompanyTableModel) this.companyTable.getModel();
+			tableModel.setRows(null);
+		}
+	}
+
 	static class DistributorDetailModel extends ListTableModel<VendorPerson> {
 
 		private static final long serialVersionUID = 7259163496906110603L;
@@ -333,5 +392,31 @@ public class DistributorEntryForm extends BeanEditor<InventoryVendor> {
 			return null;
 		}
 
+	}
+
+	static class CompanyTableModel extends ListTableModel<Company> {
+
+		private static final long serialVersionUID = 2219488651760125616L;
+
+		public CompanyTableModel() {
+			super(new String[] { "Company" });
+		}
+
+		public Object getValueAt(int rowIndex, int columnIndex) {
+			Company row = (Company) getRowData(rowIndex);
+			Session session = CompanyDAO.getInstance().createNewSession();
+			if (row.getId() != null)
+
+				session.refresh(row);
+			try {
+				switch (columnIndex) {
+				case 0:
+					return row.getName();
+				}
+				return "";
+			} finally {
+				session.close();
+			}
+		}
 	}
 }

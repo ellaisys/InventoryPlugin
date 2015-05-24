@@ -127,7 +127,9 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 			Double cafeRcpQty = 0.0d;
 			Double godownRcpQty = 0.0d;
 			Session session = InventoryItemDAO.getInstance().createNewSession();
-			session.refresh(row);
+			if (row.getId() != null)
+
+				session.refresh(row);
 			try {
 				if (listItems != null && listItems.size() == 2) {
 					cafeRcpQty = listItems.get(0).getTotalRecepieUnits();
