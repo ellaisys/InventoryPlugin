@@ -12,11 +12,14 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 
+import org.hibernate.Session;
+
 import com.floreantpos.bo.ui.BackOfficeWindow;
 import com.floreantpos.bo.ui.explorer.ListTableModel;
 import com.floreantpos.model.MenuItem;
 import com.floreantpos.model.Recepie;
 import com.floreantpos.model.RecepieItem;
+import com.floreantpos.model.dao.InventoryItemDAO;
 import com.floreantpos.model.dao.RecepieItemDAO;
 import com.floreantpos.swing.IUpdatebleView;
 import com.floreantpos.ui.dialog.POSMessageDialog;
@@ -186,14 +189,19 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			RecepieItem item = (RecepieItem) getRowData(rowIndex);
-
-			switch (columnIndex) {
-			case 0:
-				return item.getInventoryItem().getName();
-			case 1:
-				return formatDouble(item.getPercentage());
-			case 2:
-				return item.getInventoryItem().getPackagingUnit().getRecepieUnitName();
+			Session session = InventoryItemDAO.getInstance().createNewSession();
+			session.refresh(item.getInventoryItem());
+			try {
+				switch (columnIndex) {
+				case 0:
+					return item.getInventoryItem().getName();
+				case 1:
+					return formatDouble(item.getPercentage());
+				case 2:
+					return item.getInventoryItem().getPackagingUnit().getRecepieUnitName();
+				}
+			} finally {
+				session.close();
 			}
 
 			return null;
