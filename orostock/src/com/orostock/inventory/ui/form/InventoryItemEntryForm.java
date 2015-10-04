@@ -310,6 +310,9 @@ public class InventoryItemEntryForm extends BeanEditor<InventoryItem> {
 		jScrollPane.setPreferredSize(new Dimension(500, 600));
 		MenuItemDetailModel menuTableModel = (MenuItemDetailModel) this.menuTable.getModel();
 		menuTableModel.setPageSize(100);
+		menuTable.getColumn("Menu Item").setPreferredWidth(220);
+		menuTable.getColumn("Quantity").setPreferredWidth(40);
+		menuTable.getColumn("Unit").setPreferredWidth(40);
 		tabMenuIems.add(jScrollPane, "cell 1 30 3 3");
 		add(tabbedPane);
 	}

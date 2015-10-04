@@ -303,6 +303,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		add(this.cbPackSize, "wrap, w 200px");
 
 		add(this.lastPriceLabel = new JLabel("Last per Pack price"));
+		this.lastPriceLabel.setEnabled(false);
 		this.lastPrice = new DoubleTextField(30);
 		add(this.lastPrice, "wrap, w 200px");
 		this.lastPrice.setEnabled(false);
@@ -496,7 +497,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 							inventoryWarehouseItemOUT = dao3.findByInventoryItemAndInventoryLocation(inventoryItem, locationOUT);
 							double recepieUnitsIN = inventoryWarehouseItemIN.getTotalRecepieUnits();
 							double recepieUnitsOUT = inventoryWarehouseItemOUT.getTotalRecepieUnits();
-							double unitsToBeMoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor());
+							double unitsToBeMoved = (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor() * ((PackSize) cbPackSize.getSelectedItem()).getSize());
 							if (recepieUnitsOUT >= unitsToBeMoved) {
 								inventoryWarehouseItemOUT.setTotalRecepieUnits(recepieUnitsOUT - unitsToBeMoved);
 								inventoryWarehouseItemOUT.setLastUpdateDate(new Date());
