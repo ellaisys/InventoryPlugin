@@ -184,7 +184,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		private static final long serialVersionUID = -2216293918891106404L;
 
 		RecepieItemTableModel() {
-			super(new String[] { "NAME", "QUANTITY", "UNIT" });
+			super(new String[] { "NAME", "QUANTITY", "UNIT", "COST" });
 		}
 
 		public Object getValueAt(int rowIndex, int columnIndex) {
@@ -199,6 +199,8 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 					return formatDouble(item.getPercentage());
 				case 2:
 					return item.getInventoryItem().getPackagingUnit().getRecepieUnitName();
+				case 3:
+					return formatDouble(item.getPercentage() * item.getInventoryItem().getAverageRunitPrice());
 				}
 			} finally {
 				session.close();
