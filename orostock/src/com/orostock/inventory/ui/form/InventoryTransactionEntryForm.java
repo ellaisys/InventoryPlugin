@@ -570,7 +570,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 				if (actionPerformed) {
 					tx.commit();
 					if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
-						updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()), inventoryTransaction.getTotalPrice()
+						updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()*inventoryTransaction.getPackSize().getSize()), inventoryTransaction.getTotalPrice()
 								* inventoryTransaction.getQuantity());
 					}
 				} else {
