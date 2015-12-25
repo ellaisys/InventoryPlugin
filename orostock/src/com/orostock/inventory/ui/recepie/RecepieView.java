@@ -100,6 +100,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		this.recepieItemTable.setEnabled(enable);
 		this.btnAddItem.setEnabled(enable);
 		this.btnDeleteItem.setEnabled(enable);
+		this.recepieItemTable.setEnabled(enable);
 	}
 
 	public boolean updateModel(MenuItem e) {
@@ -124,6 +125,9 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 			}
 		}
 		finalList.removeAll(toDel);
+		if (rows == null) {
+			POSMessageDialog.showError(BackOfficeWindow.getInstance(), "No recipe added!");
+		}
 		for (RecepieItem recepieItem : rows) {
 			if (!finalList.contains(recepieItem)) {
 				finalList.add(recepieItem);
@@ -136,6 +140,7 @@ public class RecepieView extends JPanel implements IUpdatebleView<MenuItem> {
 		for (RecepieItem recepieItem : finalList) {
 			recepie.addRecepieItem(recepieItem);
 		}
+
 		RecepieItemDAO dao = RecepieItemDAO.getInstance();
 		for (RecepieItem recepieItem : toDel) {
 			dao.delete(recepieItem);
