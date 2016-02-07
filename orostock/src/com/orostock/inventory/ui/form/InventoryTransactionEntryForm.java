@@ -2,6 +2,8 @@ package com.orostock.inventory.ui.form;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.Date;
@@ -58,6 +60,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 
 	// private JTextField tfItem;
 	private JXComboBox cbItem;
+	private DoubleTextField tfPerUnitPrice;
 	private DoubleTextField tfTotalPrice;
 	private JXComboBox cbTransactionType;
 	private JXComboBox inWareHouse;
@@ -65,7 +68,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	private JLabel vendorLabel;
 	private JLabel inWareHouseLabel;
 	private JLabel outWareHouseLabel;
-	private JLabel priceLabel;
+	private JLabel perUnitPriceLabel;
+	private JLabel totalPriceLabel;
 	private JLabel itemCountLabel;
 	private DateTimePicker datePicker;
 	private JTextArea taNote;
@@ -312,9 +316,45 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.tfUnit = new DoubleTextField(20);
 		add(this.tfUnit, "grow, wrap");
 
-		add(this.priceLabel = new JLabel("Total Price (Vat excluded)"));
+		add(this.perUnitPriceLabel = new JLabel("Unit Price (Vat excluded)"));
+		this.tfPerUnitPrice = new DoubleTextField(20);
+		add(this.tfPerUnitPrice, "grow, wrap");
+
+		add(this.totalPriceLabel = new JLabel("Total Price (Vat excluded)"));
+		this.totalPriceLabel.setEnabled(false);
 		this.tfTotalPrice = new DoubleTextField(20);
 		add(this.tfTotalPrice, "grow, wrap");
+		this.tfTotalPrice.setEnabled(false);
+
+		tfPerUnitPrice.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				updateTotalPrice();
+
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
+		tfUnit.addFocusListener(new FocusListener() {
+
+			@Override
+			public void focusLost(FocusEvent e) {
+				updateTotalPrice();
+
+			}
+
+			@Override
+			public void focusGained(FocusEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
 
 		add(this.vatLabel = new JLabel("VAT in %"));
 		this.cbVat = new JXComboBox();
@@ -340,6 +380,15 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		add(new JScrollPane(this.taNote), "grow, h 100px, wrap");
 		this.outWareHouse.setVisible(false);
 		this.outWareHouseLabel.setVisible(false);
+	}
+
+	private void updateTotalPrice() {
+		double totalPrice = this.tfPerUnitPrice.getDouble() * this.tfUnit.getDouble();
+		if (Double.isNaN(totalPrice)) {
+			tfTotalPrice.setText(Double.toString(0.0));
+		} else {
+			tfTotalPrice.setText(Double.toString(this.tfPerUnitPrice.getDouble() * this.tfUnit.getDouble()));
+		}
 	}
 
 	public void setInventoryItem(InventoryItem item) {
@@ -570,8 +619,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 				if (actionPerformed) {
 					tx.commit();
 					if (inOutEnum == InOutEnum.IN || inOutEnum == InOutEnum.OUT) {
-						updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor()*inventoryTransaction.getPackSize().getSize()), inventoryTransaction.getTotalPrice()
-								* inventoryTransaction.getQuantity());
+						updateAverageItemPrice(inventoryItem, (int) (inventoryTransaction.getQuantity() * inventoryItem.getPackagingUnit().getFactor() * inventoryTransaction.getPackSize().getSize()),
+								inventoryTransaction.getTotalPrice() * inventoryTransaction.getQuantity());
 					}
 				} else {
 					tx.rollback();
@@ -595,6 +644,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 	public void clearFields() {
 		this.cbItem.setSelectedIndex(-1);
 		this.tfTotalPrice.setText("");
+		this.tfPerUnitPrice.setText("");
 		this.tfDiscount.setText("");
 		this.tfUnit.setText("");
 		this.taNote.setText("");
@@ -627,6 +677,12 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 				this.inWareHouse.setSelectedItem(transaction.getInventoryWarehouseByToWarehouseId());
 				this.outWareHouse.setSelectedItem(transaction.getInventoryWarehouseByFromWarehouseId());
 			}
+		}
+		double perUnitPrice = transaction.getTotalPrice() / transaction.getQuantity();
+		if (Double.isNaN(perUnitPrice)) {
+			this.tfPerUnitPrice.setText(Double.toString(0.0));
+		} else {
+			this.tfPerUnitPrice.setText(Double.toString(perUnitPrice));
 		}
 		this.tfTotalPrice.setText(Double.toString(transaction.getTotalPrice()));
 		this.tfDiscount.setText(Double.toString(transaction.getDiscount()));
@@ -678,7 +734,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		switch (transType.getInOutEnum()) {
 		case IN:
 			transaction.setInventoryWarehouseByToWarehouseId((InventoryWarehouse) this.inWareHouse.getSelectedItem());
-			transaction.setTotalPrice(Double.valueOf(this.tfTotalPrice.getDouble()));
+			transaction.setTotalPrice(Double.valueOf(this.tfPerUnitPrice.getDouble() * this.tfUnit.getDouble()));
 			transaction.setDiscount(Double.valueOf(this.tfDiscount.getDouble()));
 			if (this.cbVat.getSelectedItem() != null) {
 				transaction.setVatPaid(((Tax) this.cbVat.getSelectedItem()));
@@ -704,7 +760,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			break;
 		case OUT:
 			transaction.setInventoryWarehouseByFromWarehouseId((InventoryWarehouse) this.outWareHouse.getSelectedItem());
-			transaction.setTotalPrice(Double.valueOf(this.tfTotalPrice.getDouble()));
+			transaction.setTotalPrice(Double.valueOf(this.tfPerUnitPrice.getDouble() * this.tfUnit.getDouble()));
 			transaction.setDiscount(Double.valueOf(this.tfDiscount.getDouble()));
 			if (this.cbVat.getSelectedItem() != null) {
 				transaction.setVatPaid(((Tax) this.cbVat.getSelectedItem()));
@@ -764,7 +820,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.vendorLabel.setVisible(true);
 			this.cbPackSize.setVisible(true);
 			this.packLabel.setVisible(true);
-			this.priceLabel.setVisible(true);
+			this.totalPriceLabel.setVisible(true);
+			this.tfPerUnitPrice.setVisible(true);
 			this.tfTotalPrice.setVisible(true);
 			this.vatLabel.setVisible(true);
 			this.cbVat.setVisible(true);
@@ -784,7 +841,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.vendorLabel.setVisible(true);
 			this.cbPackSize.setVisible(true);
 			this.packLabel.setVisible(true);
-			this.priceLabel.setVisible(true);
+			this.tfPerUnitPrice.setVisible(true);
+			this.totalPriceLabel.setVisible(true);
 			this.tfTotalPrice.setVisible(true);
 			this.vatLabel.setVisible(true);
 			this.cbVat.setVisible(true);
@@ -804,7 +862,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.vendorLabel.setVisible(true);
 			this.cbPackSize.setVisible(true);
 			this.packLabel.setVisible(true);
-			this.priceLabel.setVisible(false);
+			this.tfPerUnitPrice.setVisible(false);
+			this.totalPriceLabel.setVisible(false);
 			this.tfTotalPrice.setVisible(false);
 			this.vatLabel.setVisible(false);
 			this.cbVat.setVisible(false);
@@ -826,7 +885,8 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 			this.vendorLabel.setVisible(false);
 			this.cbPackSize.setVisible(false);
 			this.packLabel.setVisible(false);
-			this.priceLabel.setVisible(false);
+			this.totalPriceLabel.setVisible(false);
+			this.tfPerUnitPrice.setVisible(false);
 			this.tfTotalPrice.setVisible(false);
 			this.vatLabel.setVisible(false);
 			this.cbVat.setVisible(false);
@@ -849,7 +909,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 
 	public void setFieldsEnable(boolean enable) {
 		this.cbItem.setEnabled(enable);
-		this.tfTotalPrice.setEnabled(enable);
+		this.tfPerUnitPrice.setEnabled(enable);
 		this.tfDiscount.setEnabled(enable);
 		this.cbVat.setEnabled(enable);
 		this.cbTransactionType.setEnabled(enable);
@@ -859,7 +919,7 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.vendorLabel.setEnabled(enable);
 		this.inWareHouseLabel.setEnabled(enable);
 		this.outWareHouseLabel.setEnabled(enable);
-		this.priceLabel.setEnabled(enable);
+		this.totalPriceLabel.setEnabled(enable);
 		this.itemCountLabel.setEnabled(enable);
 		this.datePicker.setEnabled(enable);
 		this.noteLabel.setEnabled(enable);
