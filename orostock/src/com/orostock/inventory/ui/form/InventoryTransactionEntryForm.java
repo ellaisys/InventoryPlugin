@@ -306,15 +306,15 @@ public class InventoryTransactionEntryForm extends BeanEditor<InventoryTransacti
 		this.cbPackSize = new JXComboBox();
 		add(this.cbPackSize, "wrap, w 200px");
 
+		add(this.itemCountLabel = new JLabel("No of packs"));
+		this.tfUnit = new DoubleTextField(20);
+		add(this.tfUnit, "grow, wrap");
+		
 		add(this.lastPriceLabel = new JLabel("Last per Pack price"));
 		this.lastPriceLabel.setEnabled(false);
 		this.lastPrice = new DoubleTextField(30);
 		add(this.lastPrice, "wrap, w 200px");
 		this.lastPrice.setEnabled(false);
-
-		add(this.itemCountLabel = new JLabel("No of packs"));
-		this.tfUnit = new DoubleTextField(20);
-		add(this.tfUnit, "grow, wrap");
 
 		add(this.perUnitPriceLabel = new JLabel("Unit Price (Vat excluded)"));
 		this.tfPerUnitPrice = new DoubleTextField(20);
