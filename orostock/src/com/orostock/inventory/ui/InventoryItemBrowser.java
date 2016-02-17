@@ -1,21 +1,15 @@
 package com.orostock.inventory.ui;
 
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTable;
 import javax.swing.event.ListSelectionEvent;
-import javax.swing.table.TableCellRenderer;
 
 import org.hibernate.Session;
 
@@ -28,7 +22,8 @@ import com.floreantpos.model.InventoryTransaction;
 import com.floreantpos.model.InventoryWarehouseItem;
 import com.floreantpos.model.dao.InventoryItemDAO;
 import com.floreantpos.model.dao.InventoryWarehouseItemDAO;
-import com.floreantpos.ui.InventoryLevel;
+import com.floreantpos.ui.ColoredCellData;
+import com.floreantpos.ui.ColoredCellRenderer;
 import com.floreantpos.ui.dialog.BeanEditorDialog;
 import com.orostock.inventory.ui.form.InventoryItemEntryForm;
 import com.orostock.inventory.ui.form.InventoryTransactionEntryForm;
@@ -48,8 +43,8 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 		this.btnNewTransaction.setActionCommand(Command.NEW_TRANSACTION.name());
 		this.btnNewTransaction.setEnabled(false);
 		init(new InventoryItemTableModel(), new Dimension(300, 400), new Dimension(600, 400));
-		this.browserTable.getColumn(1).setCellRenderer(new InventoryLevelRenderer());
-		this.browserTable.getColumn(2).setCellRenderer(new InventoryLevelRenderer());
+		this.browserTable.getColumn(1).setCellRenderer(new ColoredCellRenderer());
+		this.browserTable.getColumn(2).setCellRenderer(new ColoredCellRenderer());
 		hideDeleteBtn();
 	}
 
@@ -140,22 +135,22 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 					return row.getName();
 				case 1:
 					if (row.getPackageReplenishLevel() == -100) {
-						return new InventoryLevel("NA", Color.GRAY);
+						return new ColoredCellData("NA", Color.GRAY);
 					} else {
 						if (cafeRcpQty <= row.getPackageReplenishLevel()) {
-							return new InventoryLevel(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.YELLOW);
+							return new ColoredCellData(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.YELLOW);
 						} else {
-							return new InventoryLevel(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
+							return new ColoredCellData(formatDouble(cafeRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
 						}
 					}
 				case 2:
 					if (row.getPackageReorderLevel() == -100) {
-						return new InventoryLevel("NA", Color.GRAY);
+						return new ColoredCellData("NA", Color.GRAY);
 					} else {
 						if (godownRcpQty <= row.getPackageReorderLevel()) {
-							return new InventoryLevel(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.PINK);
+							return new ColoredCellData(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.PINK);
 						} else {
-							return new InventoryLevel(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
+							return new ColoredCellData(formatDouble(godownRcpQty) + " " + row.getPackagingUnit().getRecepieUnitName(), Color.WHITE);
 						}
 					}
 
@@ -168,41 +163,3 @@ public class InventoryItemBrowser extends ModelBrowser<InventoryItem> {
 	}
 }
 
-class InventoryLevelRenderer extends JLabel implements TableCellRenderer {
-
-	private static final long serialVersionUID = 1L;
-
-	private Map<String, JLabel> labelMap = new HashMap<String, JLabel>();
-
-	@Override
-	public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
-
-		// Cells are by default rendered as a JLabel.
-		// JLabel l = (JLabel) super.getTableCellRendererComponent(table, value,
-		// isSelected, hasFocus, row, col);
-		String loc = row + "_" + col;
-
-		JLabel l;
-		if (labelMap.containsKey(loc)) {
-			l = labelMap.get(loc);
-		} else {
-			l = new JLabel();
-			l.setOpaque(true);
-			labelMap.put(loc, l);
-		}
-
-		// Get the status for the current row.
-		InventoryLevel level = (InventoryLevel) value;
-		l.setBackground(level.getC());
-		l.setText(level.getLevel());
-		if (isSelected) {
-			l.setBackground(table.getSelectionBackground());
-			l.setForeground(table.getSelectionForeground());
-		} else {
-			l.setForeground(table.getForeground());
-
-		}
-		// Return the JLabel which renders the cell.
-		return l;
-	}
-}
